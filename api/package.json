@@ -1,0 +1,21 @@
+{
+    "name": "github-recap-api",
+    "version": "1.0.0",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "firebase-admin": "^12.7.0",
+        "cloudinary": "^2.5.1",
+        "@google/generative-ai": "^0.21.0",
+        "satori": "^0.12.0",
+        "@resvg/resvg-js": "^2.6.2"
+    },
+    "devDependencies": {
+        "@types/node": "^22.10.2",
+        "@vercel/node": "^5.0.2",
+        "typescript": "^5.7.2"
+    }
+}
