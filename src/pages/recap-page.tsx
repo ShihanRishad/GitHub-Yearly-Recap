@@ -20,9 +20,6 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { GithubIcon, Home01Icon, RefreshIcon } from '@hugeicons/core-free-icons';
 import type { RecapData, RecapStatus } from '@/types';
 
-// Mock data for demo - will be replaced with actual API call
-import { getMockRecapData } from '@/lib/mock-data';
-
 export function RecapPage() {
     const { username, year } = useParams<{ username: string; year: string }>();
     const navigate = useNavigate();
@@ -33,7 +30,7 @@ export function RecapPage() {
     const [error, setError] = useState<string | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
 
-    // Fetch recap data
+    // Fetch recap data from real API
     const fetchRecap = useCallback(async () => {
         if (!username) {
             setError('No username provided');
@@ -44,20 +41,52 @@ export function RecapPage() {
         setError(null);
 
         try {
-            // For demo, use mock data
-            // In production, this would call the API:
-            // const response = await fetch(`/api/recap/${username}`, {
-            //   method: 'POST',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({ year: selectedYear }),
-            // });
+            // Start the recap generation
+            const response = await fetch(`/api/recap?username=${username}&year=${selectedYear}`, {
+                method: 'POST',
+            });
 
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to start recap generation');
+            }
 
-            const mockData = getMockRecapData(username, selectedYear);
-            setData(mockData);
-            setStatus('ready');
+            const initialData = await response.json();
+
+            // If already cached, use it directly
+            if (initialData.status === 'ready' && initialData.data) {
+                setData(initialData.data);
+                setStatus('ready');
+                return;
+            }
+
+            // Poll for status
+            const pollInterval = setInterval(async () => {
+                try {
+                    const statusResponse = await fetch(
+                        `/api/recap-status?username=${username}&year=${selectedYear}`
+                    );
+                    const statusData = await statusResponse.json();
+
+                    if (statusData.status === 'ready' && statusData.data) {
+                        clearInterval(pollInterval);
+                        setData(statusData.data);
+                        setStatus('ready');
+                    } else if (statusData.status === 'error') {
+                        clearInterval(pollInterval);
+                        setError(statusData.error || 'Processing failed');
+                        setStatus('error');
+                    }
+                    // Continue polling if still processing
+                } catch {
+                    clearInterval(pollInterval);
+                    setError('Failed to check status');
+                    setStatus('error');
+                }
+            }, 2000); // Poll every 2 seconds
+
+            // Cleanup on unmount
+            return () => clearInterval(pollInterval);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch recap data');
             setStatus('error');

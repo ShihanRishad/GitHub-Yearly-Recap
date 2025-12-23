@@ -27,7 +27,7 @@ interface RecapStats {
 }
 
 export async function generateCommentary(stats: RecapStats): Promise<CommentaryNote[]> {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
     const prompt = `You are a friendly, witty AI assistant creating fun commentary for a GitHub Recap.
 
