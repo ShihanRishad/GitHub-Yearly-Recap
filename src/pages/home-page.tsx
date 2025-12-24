@@ -14,7 +14,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { GithubIcon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
 
 const currentYear = new Date().getFullYear();
 const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
@@ -49,10 +49,7 @@ export function HomePage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-              <HugeiconsIcon icon={GithubIcon} strokeWidth={2} size={18} className="text-white" />
-            </div>
-            <span className="font-bold text-lg">GitHub Recap</span>
+            <img width={80} src="public/recap_logo_horizontal_dark.svg" alt="" />
           </div>
           <ThemeToggle />
         </div>
@@ -72,7 +69,7 @@ export function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10 max-w-2xl"
         >
-          <h1 className="text-5xl md:text-7xl italic font-serif font-normal tracking-tight mb-4">
+          <h1 className="text-5xl md:text-7xl font-serif font-normal tracking-tight mb-4">
             Your {year} on{' '}
             <span className="">GitHub</span>
           </h1>
