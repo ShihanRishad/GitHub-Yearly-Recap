@@ -13,10 +13,13 @@ interface OGImageProps {
 }
 
 async function loadFont(weight: 'Regular' | 'Bold' = 'Regular'): Promise<ArrayBuffer> {
-    const url = `https://raw.githubusercontent.com/google/fonts/main/ofl/inter/static/Inter-${weight}.ttf`;
+    const url = weight === 'Bold'
+        ? 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-700-normal.ttf'
+        : 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+
     const response = await fetch(url);
     if (!response.ok) {
-        throw new Error(`Failed to load font ${weight}: ${response.statusText}`);
+        throw new Error(`Failed to load font ${weight}: ${response.statusText} (${response.status}) at ${url}`);
     }
     return response.arrayBuffer();
 }
