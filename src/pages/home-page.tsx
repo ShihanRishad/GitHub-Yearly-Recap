@@ -14,7 +14,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { GithubIcon, ArrowRight01Icon, Fire03Icon, SourceCodeCircleIcon, SparklesIcon } from '@hugeicons/core-free-icons';
+import { GithubIcon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 
 const currentYear = new Date().getFullYear();
 const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
