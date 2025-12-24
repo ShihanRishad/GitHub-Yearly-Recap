@@ -72,12 +72,9 @@ export function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10 max-w-2xl"
         >
-
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
+          <h1 className="text-5xl md:text-7xl italic font-serif font-normal tracking-tight mb-4">
             Your {year} on{' '}
-            <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
-              GitHub
-            </span>
+            <span className="">GitHub</span>
           </h1>
         </motion.div>
 
@@ -152,15 +149,6 @@ export function HomePage() {
           </Card>
         </motion.div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>
-            Made with ❤️ using GitHub API, Gemini AI, and Shadcn UI
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }
