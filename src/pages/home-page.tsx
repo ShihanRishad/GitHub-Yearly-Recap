@@ -72,28 +72,13 @@ export function HomePage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center mb-10 max-w-2xl"
                 >
-                    <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: 'spring', delay: 0.1 }}
-                        className="inline-flex items-center gap-2 bg-primary/10 px-4 py-1.5 rounded-full text-sm mb-6"
-                    >
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                        </span>
-                        2025 Edition
-                    </motion.div>
 
                     <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
-                        Your Year on{' '}
+                        Your {year} on{' '}
                         <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
                             GitHub
                         </span>
                     </h1>
-                    <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                        Generate a beautiful recap of your GitHub contributions, streaks, and achievements.
-                    </p>
                 </motion.div>
 
                 {/* Form card */}
@@ -165,27 +150,6 @@ export function HomePage() {
                             </form>
                         </CardContent>
                     </Card>
-                </motion.div>
-
-                {/* Features */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="flex flex-wrap justify-center gap-6 mt-12 text-sm text-muted-foreground"
-                >
-                    <div className="flex items-center gap-2">
-                        <HugeiconsIcon icon={Fire03Icon} strokeWidth={2} size={18} className="text-orange-500" />
-                        <span>Streak tracking</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <HugeiconsIcon icon={SourceCodeCircleIcon} strokeWidth={2} size={18} className="text-green-500" />
-                        <span>Contribution heatmap</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <HugeiconsIcon icon={SparklesIcon} strokeWidth={2} size={18} className="text-yellow-500" />
-                        <span>AI insights</span>
-                    </div>
                 </motion.div>
             </main>
 
