@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -19,18 +19,21 @@ import { ShareSlide } from '@/components/recap/slides/share-slide';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { GithubIcon, Home01Icon, RefreshIcon } from '@hugeicons/core-free-icons';
 import type { RecapData, RecapStatus } from '@/types';
+import { getMockRecapData } from '@/lib/mock-data';
 
 export function RecapPage() {
     const { username, year } = useParams<{ username: string; year: string }>();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const selectedYear = parseInt(year || new Date().getFullYear().toString(), 10);
+    const isDemo = searchParams.get('demo') === 'true';
 
     const [status, setStatus] = useState<RecapStatus>('processing');
     const [data, setData] = useState<RecapData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
 
-    // Fetch recap data from real API
+    // Fetch recap data - supports demo mode with mock data
     const fetchRecap = useCallback(async () => {
         if (!username) {
             setError('No username provided');
@@ -39,6 +42,15 @@ export function RecapPage() {
 
         setStatus('processing');
         setError(null);
+
+        // Demo mode - use mock data immediately
+        if (isDemo) {
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Brief loading
+            const mockData = getMockRecapData(username, selectedYear);
+            setData(mockData);
+            setStatus('ready');
+            return;
+        }
 
         try {
             // Start the recap generation
@@ -60,12 +72,42 @@ export function RecapPage() {
                 return;
             }
 
+            // If new or retrying, trigger processing
+            if (initialData.shouldTrigger) {
+                try {
+                    // Trigger processing (fire and forget from client perspective, but we poll)
+                    fetch(`/api/process?username=${username}&year=${selectedYear}`, {
+                        method: 'POST',
+                    }).catch(err => console.error('Failed to trigger process:', err));
+                } catch (e) {
+                    console.error('Error triggering process:', e);
+                    // Don't fail here, polling might still pick it up if another trigger worked
+                }
+            }
+
             // Poll for status
+            const startTime = Date.now();
+            const POLL_TIMEOUT = 60000; // 60 seconds timeout
+
             const pollInterval = setInterval(async () => {
+                // Check timeout
+                if (Date.now() - startTime > POLL_TIMEOUT) {
+                    clearInterval(pollInterval);
+                    setError('Processing timed out. This is taking longer than usual. Please try again later.');
+                    setStatus('error');
+                    return;
+                }
+
                 try {
                     const statusResponse = await fetch(
                         `/api/recap-status?username=${username}&year=${selectedYear}`
                     );
+
+                    if (!statusResponse.ok) {
+                        // If status check fails, don't abort immediately, might be temporary
+                        return;
+                    }
+
                     const statusData = await statusResponse.json();
 
                     if (statusData.status === 'ready' && statusData.data) {
@@ -79,9 +121,7 @@ export function RecapPage() {
                     }
                     // Continue polling if still processing
                 } catch {
-                    clearInterval(pollInterval);
-                    setError('Failed to check status');
-                    setStatus('error');
+                    // Network errors during polling are ignored until timeout
                 }
             }, 2000); // Poll every 2 seconds
 
@@ -91,7 +131,7 @@ export function RecapPage() {
             setError(err instanceof Error ? err.message : 'Failed to fetch recap data');
             setStatus('error');
         }
-    }, [username, selectedYear]);
+    }, [username, selectedYear, isDemo]);
 
     useEffect(() => {
         fetchRecap();

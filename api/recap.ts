@@ -21,8 +21,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ error: 'Server configuration error' });
     }
 
-    const { username } = req.query;
-    const { year = new Date().getFullYear() } = req.body || {};
+    // Get params from query (preferred) or body
+    const { username, year: queryYear } = req.query;
+    const bodyYear = req.body?.year;
+    // Prioritize query param, then body, then default
+    const year = queryYear || bodyYear || new Date().getFullYear();
 
     if (!username || typeof username !== 'string') {
         return res.status(400).json({ error: 'Username is required' });
@@ -51,6 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json({
                     status: 'processing',
                     message: 'Recap is being generated',
+                    shouldTrigger: true, // Ensure processing is triggered/retried
                 });
             }
 
@@ -58,12 +62,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 // Allow retry - delete and recreate
                 await createRecap(username, yearNum);
 
-                // Trigger processing (in production, this would be a background job)
-                triggerProcessing(username, yearNum);
-
                 return res.status(200).json({
                     status: 'processing',
                     message: 'Retrying recap generation',
+                    shouldTrigger: true, // Signal client to trigger processing
                 });
             }
         }
@@ -71,12 +73,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Create new recap record
         await createRecap(username, yearNum);
 
-        // Trigger processing (in production, this would be a background job)
-        triggerProcessing(username, yearNum);
-
         return res.status(200).json({
             status: 'processing',
             message: 'Recap generation started',
+            shouldTrigger: true, // Signal client to trigger processing
         });
     } catch (error) {
         console.error('Error in recap handler:', error);
@@ -85,18 +85,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             message: error instanceof Error ? error.message : 'Unknown error',
         });
     }
-}
-
-// In a real implementation, this would trigger a background job
-// For Vercel, you might use Vercel Cron or a separate serverless function
-async function triggerProcessing(username: string, year: number) {
-    // This is a simplified version - in production you'd want proper job queuing
-    const baseUrl = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : 'http://localhost:3000';
-
-    // Fire and forget - don't await
-    fetch(`${baseUrl}/api/process?username=${username}&year=${year}`, {
-        method: 'POST',
-    }).catch(err => console.error('Failed to trigger processing:', err));
 }

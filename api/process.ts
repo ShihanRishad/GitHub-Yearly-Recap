@@ -27,22 +27,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         console.log(`Processing recap for ${username}/${yearNum}`);
+        const startTime = Date.now();
 
         // 1. Fetch GitHub data
+        console.time('fetchGitHubData');
         const githubData = await fetchGitHubData(username, yearNum);
+        console.timeEnd('fetchGitHubData');
 
         if (!githubData) {
+            console.error(`User ${username} not found`);
             await updateRecapError(username, yearNum, 'User not found');
             return res.status(404).json({ error: 'User not found' });
         }
 
         // 2. Calculate stats
+        console.time('calculateStats');
         const { longestStreak, currentStreak } = calculateStreaks(githubData.contributionCalendar);
         const peakStats = calculatePeakStats(githubData.contributionCalendar);
         const topLanguages = calculateLanguageStats(githubData.languageStats);
         const totalStars = calculateTotalStars(githubData.repositories);
+        console.timeEnd('calculateStats');
 
         // 3. Generate AI commentary
+        console.time('generateCommentary');
         const notes = await generateCommentary({
             username,
             year: yearNum,
@@ -63,8 +70,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             totalStars,
             topLanguages: topLanguages.slice(0, 5).map(l => l.name),
         });
+        console.timeEnd('generateCommentary');
 
         // 4. Generate OG image
+        console.time('generateOGImage');
         const ogImageBuffer = await generateOGImage({
             username,
             displayName: githubData.name || username,
@@ -75,13 +84,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             topLanguage: topLanguages[0]?.name || 'Code',
             totalStars,
         });
+        console.timeEnd('generateOGImage');
 
         // 5. Upload OG image to Cloudinary
+        console.time('uploadImage');
         const uploadResult = await uploadImage(
             ogImageBuffer,
             'og-images',
             `${username}-${yearNum}`
         );
+        console.timeEnd('uploadImage');
 
         // 6. Prepare processed data
         const processedData = {
@@ -118,17 +130,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
 
         // 7. Update Firestore
+        console.time('updateFirestore');
         await updateRecapReady(username, yearNum, processedData, uploadResult.secureUrl);
+        console.timeEnd('updateFirestore');
 
-        console.log(`Recap processed successfully for ${username}/${yearNum}`);
+        const duration = Date.now() - startTime;
+        console.log(`Recap processed successfully for ${username}/${yearNum} in ${duration}ms`);
 
         return res.status(200).json({
             status: 'ready',
             data: processedData,
             ogImageUrl: uploadResult.secureUrl,
+            duration,
         });
     } catch (error) {
-        console.error('Error processing recap:', error);
+        console.error(`Error processing recap for ${username}/${yearNum}:`, error);
 
         await updateRecapError(
             username,
