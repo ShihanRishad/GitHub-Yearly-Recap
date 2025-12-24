@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { fetchGitHubData } from './lib/github.js';
-import { updateRecapReady, updateRecapError } from './lib/firestore.js';
+import { updateRecapReady, updateRecapError, updateRecapStep } from './lib/firestore.js';
 import { calculateStreaks, calculatePeakStats, calculateLanguageStats, calculateTotalStars } from './lib/stats.js';
 import { generateCommentary } from './lib/gemini.js';
 import { generateOGImage } from './lib/og-image.js';
@@ -30,6 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const startTime = Date.now();
 
         // 1. Fetch GitHub data
+        await updateRecapStep(username, yearNum, 'Fetching your GitHub data...');
         console.time('fetchGitHubData');
         const githubData = await fetchGitHubData(username, yearNum);
         console.timeEnd('fetchGitHubData');
@@ -41,6 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // 2. Calculate stats
+        await updateRecapStep(username, yearNum, 'Calculating your streaks & stats...');
         console.time('calculateStats');
         const { longestStreak, currentStreak } = calculateStreaks(githubData.contributionCalendar);
         const peakStats = calculatePeakStats(githubData.contributionCalendar);
@@ -49,6 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.timeEnd('calculateStats');
 
         // 3. Generate AI commentary
+        await updateRecapStep(username, yearNum, 'Generating AI commentary with Gemini...');
         console.time('generateCommentary');
         const notes = await generateCommentary({
             username,
@@ -73,6 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.timeEnd('generateCommentary');
 
         // 4. Generate OG image
+        await updateRecapStep(username, yearNum, 'Generating shareable recap image...');
         console.time('generateOGImage');
         const ogImageBuffer = await generateOGImage({
             username,
@@ -87,6 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.timeEnd('generateOGImage');
 
         // 5. Upload OG image to Cloudinary
+        await updateRecapStep(username, yearNum, 'Finalizing & saving your recap...');
         console.time('uploadImage');
         const uploadResult = await uploadImage(
             ogImageBuffer,
@@ -146,15 +151,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } catch (error) {
         console.error(`Error processing recap for ${username}/${yearNum}:`, error);
 
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         await updateRecapError(
             username,
             yearNum,
-            error instanceof Error ? error.message : 'Unknown error'
+            errorMessage
         );
 
         return res.status(500).json({
             error: 'Failed to process recap',
-            message: error instanceof Error ? error.message : 'Unknown error',
+            message: errorMessage,
         });
     }
 }
+

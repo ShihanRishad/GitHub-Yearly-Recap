@@ -12,17 +12,20 @@ interface OGImageProps {
     totalStars: number;
 }
 
-// Simple Inter-like font (you'd load actual font files in production)
-// For Vercel, you can fetch Google Fonts:
-async function loadFont(): Promise<ArrayBuffer> {
-    const response = await fetch(
-        'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2'
-    );
+async function loadFont(weight: 'Regular' | 'Bold' = 'Regular'): Promise<ArrayBuffer> {
+    const url = `https://raw.githubusercontent.com/google/fonts/main/ofl/inter/static/Inter-${weight}.ttf`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to load font ${weight}: ${response.statusText}`);
+    }
     return response.arrayBuffer();
 }
 
 export async function generateOGImage(props: OGImageProps): Promise<Buffer> {
-    const fontData = await loadFont();
+    const [fontRegular, fontBold] = await Promise.all([
+        loadFont('Regular'),
+        loadFont('Bold'),
+    ]);
 
     // Create the OG image using Satori (React-like JSX to SVG)
     const svg = await satori(
@@ -268,20 +271,20 @@ export async function generateOGImage(props: OGImageProps): Promise<Buffer> {
                     },
                 ],
             },
-        },
+        } as any,
         {
             width: 1200,
             height: 630,
             fonts: [
                 {
                     name: 'Inter',
-                    data: fontData,
+                    data: fontRegular,
                     weight: 400,
                     style: 'normal',
                 },
                 {
                     name: 'Inter',
-                    data: fontData,
+                    data: fontBold,
                     weight: 700,
                     style: 'normal',
                 },

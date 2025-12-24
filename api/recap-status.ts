@@ -38,6 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             data: recap.status === 'ready' ? recap.processedJson : null,
             ogImageUrl: recap.ogImageUrl,
             errorMessage: recap.errorMessage,
+            currentStep: recap.currentStep,
         });
     } catch (error) {
         console.error('Error fetching recap status:', error);

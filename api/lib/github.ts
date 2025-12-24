@@ -74,7 +74,7 @@ query($username: String!, $from: DateTime!, $to: DateTime!) {
 
 // Query for PR/Issue counts by state
 const PR_ISSUE_QUERY = `
-query($username: String!, $from: DateTime!, $to: DateTime!) {
+query($username: String!) {
   user(login: $username) {
     pullRequests(first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
       nodes {
@@ -227,7 +227,7 @@ export async function fetchGitHubData(username: string, year: number): Promise<G
         const user = data.user;
 
         // Fetch PR/Issue details
-        const prIssueData = await executeGraphQL(PR_ISSUE_QUERY, { username, from, to }) as {
+        const prIssueData = await executeGraphQL(PR_ISSUE_QUERY, { username }) as {
             user: {
                 pullRequests: {
                     nodes: Array<{

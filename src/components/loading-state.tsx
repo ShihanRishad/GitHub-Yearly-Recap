@@ -5,20 +5,25 @@ import { Loading02Icon } from '@hugeicons/core-free-icons';
 interface LoadingStateProps {
     message?: string;
     subMessage?: string;
+    currentStep?: string;
+    error?: string;
 }
 
-const loadingMessages = [
+const loadingSteps = [
     'Fetching your GitHub data...',
-    'Calculating your streaks...',
-    'Analyzing your contributions...',
-    'Computing top languages...',
-    'Generating your recap...',
+    'Calculating your streaks & stats...',
+    'Generating AI commentary with Gemini...',
+    'Generating shareable recap image...',
+    'Finalizing & saving your recap...',
 ];
 
 export function LoadingState({
     message = 'Loading your GitHub Recap...',
     subMessage = 'This might take a moment',
+    currentStep,
+    error,
 }: LoadingStateProps) {
+    const activeIndex = currentStep ? loadingSteps.indexOf(currentStep) : -1;
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
             {/* Animated spinner */}
@@ -51,45 +56,58 @@ export function LoadingState({
             </motion.div>
 
             {/* Messages */}
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-2 max-w-md px-6">
                 <motion.h2
-                    className="text-xl font-semibold"
+                    className={`text-xl font-semibold ${error ? 'text-destructive' : ''}`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                 >
-                    {message}
+                    {error ? 'Something went wrong' : (currentStep || message)}
                 </motion.h2>
                 <motion.p
-                    className="text-muted-foreground"
+                    className="text-muted-foreground break-words"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                 >
-                    {subMessage}
+                    {error || subMessage}
                 </motion.p>
             </div>
 
             {/* Progress steps */}
-            <motion.div
-                className="flex flex-col gap-2 text-sm text-muted-foreground"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-            >
-                {loadingMessages.map((msg, index) => (
-                    <motion.div
-                        key={msg}
-                        className="flex items-center gap-2"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 0.6, x: 0 }}
-                        transition={{ delay: 0.6 + index * 0.15 }}
-                    >
-                        <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
-                        <span>{msg}</span>
-                    </motion.div>
-                ))}
-            </motion.div>
+            {!error && (
+                <motion.div
+                    className="flex flex-col gap-2 text-sm text-muted-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                >
+                    {loadingSteps.map((msg, index) => {
+                        const isCompleted = activeIndex > index;
+                        const isActive = activeIndex === index;
+
+                        return (
+                            <motion.div
+                                key={msg}
+                                className={`flex items-center gap-2 transition-colors duration-300 ${isActive ? 'text-primary font-medium' :
+                                        isCompleted ? 'text-green-500/80' : 'opacity-40'
+                                    }`}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.6 + index * 0.1 }}
+                            >
+                                <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-primary animate-pulse' :
+                                        isCompleted ? 'bg-green-500' : 'bg-muted-foreground/30'
+                                    }`} />
+                                <span>{msg}</span>
+                                {isCompleted && <span className="text-[10px]">✓</span>}
+                            </motion.div>
+                        );
+                    })}
+                </motion.div>
+            )}
+
         </div>
     );
 }

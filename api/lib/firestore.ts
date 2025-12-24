@@ -30,6 +30,7 @@ export interface FirestoreRecapDoc {
     createdAt: admin.firestore.Timestamp;
     updatedAt: admin.firestore.Timestamp;
     errorMessage: string | null;
+    currentStep: string | null;
     version: number;
 }
 
@@ -64,6 +65,7 @@ export async function createRecap(username: string, year: number): Promise<Fires
         createdAt: now,
         updatedAt: now,
         errorMessage: null,
+        currentStep: 'Starting...',
         version: 1,
     };
 
@@ -102,3 +104,18 @@ export async function updateRecapError(
         updatedAt: admin.firestore.Timestamp.now(),
     });
 }
+
+export async function updateRecapStep(
+    username: string,
+    year: number,
+    currentStep: string
+): Promise<void> {
+    const db = getFirestore();
+    const docRef = db.collection('recaps').doc(getDocId(username, year));
+
+    await docRef.update({
+        currentStep,
+        updatedAt: admin.firestore.Timestamp.now(),
+    });
+}
+

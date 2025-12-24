@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LoadingState } from '@/components/loading-state';
@@ -18,7 +17,7 @@ import { NotesSlide } from '@/components/recap/slides/notes-slide';
 import { ShareSlide } from '@/components/recap/slides/share-slide';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { GithubIcon, Home01Icon, RefreshIcon } from '@hugeicons/core-free-icons';
-import type { RecapData, RecapStatus } from '@/types';
+import type { RecapData } from '@/types';
 import { getMockRecapData } from '@/lib/mock-data';
 
 export function RecapPage() {
@@ -28,10 +27,11 @@ export function RecapPage() {
     const selectedYear = parseInt(year || new Date().getFullYear().toString(), 10);
     const isDemo = searchParams.get('demo') === 'true';
 
-    const [status, setStatus] = useState<RecapStatus>('processing');
+    const [status, setStatus] = useState<'processing' | 'ready' | 'error'>('processing');
     const [data, setData] = useState<RecapData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [currentStep, setCurrentStep] = useState<string>('Starting...');
 
     // Fetch recap data - supports demo mode with mock data
     const fetchRecap = useCallback(async () => {
@@ -42,15 +42,24 @@ export function RecapPage() {
 
         setStatus('processing');
         setError(null);
+        setCurrentStep('Starting...');
 
         // Demo mode - use mock data immediately
         if (isDemo) {
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Brief loading
+            setCurrentStep('Fetching your GitHub data...');
+            await new Promise(resolve => setTimeout(resolve, 800));
+            setCurrentStep('Calculating your streaks & stats...');
+            await new Promise(resolve => setTimeout(resolve, 800));
+            setCurrentStep('Generating AI commentary with Gemini...');
+            await new Promise(resolve => setTimeout(resolve, 800));
+
             const mockData = getMockRecapData(username, selectedYear);
             setData(mockData);
             setStatus('ready');
             return;
         }
+
+        let pollInterval: any;
 
         try {
             // Start the recap generation
@@ -72,43 +81,25 @@ export function RecapPage() {
                 return;
             }
 
-            // If new or retrying, trigger processing
+            // Trigger background processing if server requests it
             if (initialData.shouldTrigger) {
-                try {
-                    // Trigger processing (fire and forget from client perspective, but we poll)
-                    fetch(`/api/process?username=${username}&year=${selectedYear}`, {
-                        method: 'POST',
-                    }).catch(err => console.error('Failed to trigger process:', err));
-                } catch (e) {
-                    console.error('Error triggering process:', e);
-                    // Don't fail here, polling might still pick it up if another trigger worked
-                }
+                // Fire and forget (but keep connection open to allow serverless execution)
+                fetch(`/api/process?username=${username}&year=${selectedYear}`, {
+                    method: 'POST'
+                }).catch(err => console.error("Trigger processing failed", err));
             }
 
             // Poll for status
-            const startTime = Date.now();
-            const POLL_TIMEOUT = 60000; // 60 seconds timeout
-
-            const pollInterval = setInterval(async () => {
-                // Check timeout
-                if (Date.now() - startTime > POLL_TIMEOUT) {
-                    clearInterval(pollInterval);
-                    setError('Processing timed out. This is taking longer than usual. Please try again later.');
-                    setStatus('error');
-                    return;
-                }
-
+            pollInterval = setInterval(async () => {
                 try {
-                    const statusResponse = await fetch(
-                        `/api/recap-status?username=${username}&year=${selectedYear}`
-                    );
+                    const statusRes = await fetch(`/api/recap-status?username=${username}&year=${selectedYear}`);
+                    if (!statusRes.ok) return;
 
-                    if (!statusResponse.ok) {
-                        // If status check fails, don't abort immediately, might be temporary
-                        return;
+                    const statusData = await statusRes.json();
+
+                    if (statusData.currentStep) {
+                        setCurrentStep(statusData.currentStep);
                     }
-
-                    const statusData = await statusResponse.json();
 
                     if (statusData.status === 'ready' && statusData.data) {
                         clearInterval(pollInterval);
@@ -116,19 +107,20 @@ export function RecapPage() {
                         setStatus('ready');
                     } else if (statusData.status === 'error') {
                         clearInterval(pollInterval);
-                        setError(statusData.error || 'Processing failed');
+                        setError(statusData.errorMessage || 'Processing failed');
                         setStatus('error');
                     }
-                    // Continue polling if still processing
-                } catch {
-                    // Network errors during polling are ignored until timeout
+                } catch (e) {
+                    console.error('Polling error:', e);
                 }
-            }, 2000); // Poll every 2 seconds
+            }, 2000);
 
-            // Cleanup on unmount
-            return () => clearInterval(pollInterval);
+            return () => {
+                if (pollInterval) clearInterval(pollInterval);
+            };
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to fetch recap data');
+            console.error('Fetch error:', err);
+            setError(err instanceof Error ? err.message : 'Failed to generate recap');
             setStatus('error');
         }
     }, [username, selectedYear, isDemo]);
@@ -207,25 +199,15 @@ export function RecapPage() {
                 {status === 'processing' && (
                     <LoadingState
                         message={`Generating recap for @${username}...`}
-                        subMessage="Fetching your GitHub data"
+                        currentStep={currentStep}
                     />
                 )}
 
                 {status === 'error' && (
                     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">
-                        <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center"
-                        >
-                            <span className="text-3xl">😕</span>
-                        </motion.div>
-                        <div className="text-center">
-                            <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
-                            <p className="text-muted-foreground max-w-md">
-                                {error || 'Failed to generate recap. Please try again.'}
-                            </p>
-                        </div>
+                        <LoadingState
+                            error={error || 'Failed to generate recap'}
+                        />
                         <div className="flex gap-4">
                             <Button variant="outline" onClick={() => navigate('/')}>
                                 Go Home
@@ -237,6 +219,7 @@ export function RecapPage() {
                         </div>
                     </div>
                 )}
+
 
                 {status === 'ready' && data && (
                     <div className="container mx-auto px-4 py-8">
