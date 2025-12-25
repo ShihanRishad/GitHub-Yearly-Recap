@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,10 @@ export function HomePage() {
   const [error, setError] = useState('');
   const { isDark } = useTheme();
 
+  useEffect(() => {
+    document.title = 'GitHub Yearly Recap';
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -49,7 +53,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 border-b border-border/50">
         <div className="container mx-auto w-full px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img width={80} src={isDark ? "public/recap_logo_horizontal_dark.svg" : "public/recap_logo_horizontal.svg"} alt="" />

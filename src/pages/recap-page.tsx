@@ -19,6 +19,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { GithubIcon, Home01Icon, RefreshIcon } from '@hugeicons/core-free-icons';
 import type { RecapData } from '@/types';
 import { getMockRecapData } from '@/lib/mock-data';
+import { useTheme } from '@/components/theme-provider';
 
 export function RecapPage() {
     const { username, year } = useParams<{ username: string; year: string }>();
@@ -32,6 +33,7 @@ export function RecapPage() {
     const [error, setError] = useState<string | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [currentStep, setCurrentStep] = useState<string>('Starting...');
+    const isDark = useTheme();
 
     // Fetch recap data - supports demo mode with mock data
     const fetchRecap = useCallback(async () => {
@@ -126,6 +128,16 @@ export function RecapPage() {
     }, [username, selectedYear, isDemo]);
 
     useEffect(() => {
+        if (data) {
+            document.title = `${data.displayName || data.username} - GitHub ${data.year} Recap`;
+        } else if (status === 'processing') {
+            document.title = `Generating Recap... - GitHub Yearly Recap`;
+        } else if (status === 'error') {
+            document.title = `Error - GitHub Yearly Recap`;
+        }
+    }, [data, status]);
+
+    useEffect(() => {
         fetchRecap();
     }, [fetchRecap]);
 
@@ -173,10 +185,9 @@ export function RecapPage() {
                             onClick={() => navigate('/')}
                             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                         >
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                                <HugeiconsIcon icon={GithubIcon} strokeWidth={2} size={18} className="text-white" />
+                            <div className="flex items-center gap-2">
+                                <img width={80} src={isDark ? "public/recap_logo_horizontal_dark.svg" : "public/recap_logo_horizontal.svg"} alt="" />
                             </div>
-                            <span className="font-bold text-lg hidden sm:block">GitHub Recap</span>
                         </button>
                         {username && (
                             <span className="text-muted-foreground text-sm">
