@@ -8,6 +8,10 @@ export function ThemeToggle() {
     const { isDark, setTheme } = useTheme();
 
     const toggleTheme = () => {
+        // Add transition to body on first click so initial load doesn't transition
+        if (!document.body.style.transition) {
+            document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease';
+        }
         setTheme(isDark ? 'light' : 'dark');
     };
 

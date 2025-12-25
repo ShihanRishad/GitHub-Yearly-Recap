@@ -131,3 +131,15 @@
     @apply font-sans;
   }
 }
+
+html {
+  box-sizing: border-box;
+}
+
+header {
+  transition: background-color 0.5s;
+}
+
+* {
+  transition: background-color 0.5s;
+}

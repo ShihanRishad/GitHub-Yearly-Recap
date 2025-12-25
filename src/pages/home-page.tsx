@@ -50,9 +50,8 @@ export function HomePage() {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto w-full px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-
             <img width={80} src={isDark ? "public/recap_logo_horizontal_dark.svg" : "public/recap_logo_horizontal.svg"} alt="" />
           </div>
           <ThemeToggle />
@@ -61,7 +60,7 @@ export function HomePage() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 pt-24 pb-12">
-        {/* Background decoration */}
+        {/* Background decoration; Not sure if I should keep it or remove */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl" />
@@ -88,7 +87,7 @@ export function HomePage() {
           transition={{ delay: 0.2 }}
           className="w-full max-w-md"
         >
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="bg-card/70">
             <CardContent className="p-6">
               <form onSubmit={handleSubmit}>
                 <FieldGroup>
