@@ -55,7 +55,7 @@ export function HomePage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 border-b border-border/50">
         <div className="container mx-auto w-full px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img width={80} src={isDark ? "public/recap_logo_horizontal_dark.svg" : "public/recap_logo_horizontal.svg"} alt="" />
+            <img width={80} src={isDark ? "recap_logo_horizontal_dark.svg" : "recap_logo_horizontal.svg"} alt="" />
           </div>
           <ThemeToggle />
         </div>
