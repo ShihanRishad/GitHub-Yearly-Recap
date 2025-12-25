@@ -33,7 +33,7 @@ export function RecapPage() {
     const [error, setError] = useState<string | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [currentStep, setCurrentStep] = useState<string>('Starting...');
-    const isDark = useTheme();
+    const { isDark } = useTheme();
 
     // Fetch recap data - supports demo mode with mock data
     const fetchRecap = useCallback(async () => {
@@ -186,7 +186,7 @@ export function RecapPage() {
                             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                         >
                             <div className="flex items-center gap-2">
-                                <img width={80} src={isDark ? "public/recap_logo_horizontal_dark.svg" : "public/recap_logo_horizontal.svg"} alt="" />
+                                <img width={80} src={isDark ? "/recap_logo_horizontal_dark.svg" : "/recap_logo_horizontal.svg"} alt="" />
                             </div>
                         </button>
                         {username && (
