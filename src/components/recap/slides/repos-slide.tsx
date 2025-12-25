@@ -10,7 +10,9 @@ interface ReposSlideProps {
 }
 
 export function ReposSlide({ data }: ReposSlideProps) {
-    const repos = data.newRepos.slice(0, 6); // Show top 6
+    const repos = [...data.newRepos]
+        .sort((a, b) => b.stars - a.stars)
+        .slice(0, 6); // Show top 6 by stars
 
     return (
         <div className="min-h-[70vh] flex flex-col justify-center py-12 px-4">

@@ -16,7 +16,7 @@ import { LanguagesSlide } from '@/components/recap/slides/languages-slide';
 import { NotesSlide } from '@/components/recap/slides/notes-slide';
 import { ShareSlide } from '@/components/recap/slides/share-slide';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Home01Icon, RefreshIcon, PlayIcon } from '@hugeicons/core-free-icons';
+import { Home01Icon, RefreshIcon } from '@hugeicons/core-free-icons';
 import type { RecapData } from '@/types';
 import { getMockRecapData } from '@/lib/mock-data';
 import { useTheme } from '@/components/theme-provider';
@@ -56,7 +56,7 @@ export function RecapPage() {
     const { isDark } = useTheme();
 
     // Timer refs
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const startTimeRef = useRef<number | null>(null);
 
     // Initial fetch trigger
