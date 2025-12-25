@@ -5,10 +5,10 @@ import { SunIcon, MoonIcon } from '@hugeicons/core-free-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function ThemeToggle() {
-    const { resolvedTheme, setTheme } = useTheme();
+    const { isDark, setTheme } = useTheme();
 
     const toggleTheme = () => {
-        setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+        setTheme(isDark ? 'light' : 'dark');
     };
 
     return (
@@ -17,10 +17,10 @@ export function ThemeToggle() {
             size="icon"
             onClick={toggleTheme}
             className="relative overflow-hidden"
-            aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
         >
             <AnimatePresence mode="wait" initial={false}>
-                {resolvedTheme === 'dark' ? (
+                {isDark ? (
                     <motion.div
                         key="moon"
                         initial={{ scale: 0, rotate: -90 }}

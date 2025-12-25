@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useTheme } from '@/components/theme-provider';
+
 import {
   Select,
   SelectContent,
@@ -25,6 +27,7 @@ export function HomePage() {
   const [year, setYear] = useState(currentYear.toString());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { isDark } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +52,8 @@ export function HomePage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img width={80} src="public/recap_logo_horizontal_dark.svg" alt="" />
+
+            <img width={80} src={isDark ? "public/recap_logo_horizontal_dark.svg" : "public/recap_logo_horizontal.svg"} alt="" />
           </div>
           <ThemeToggle />
         </div>

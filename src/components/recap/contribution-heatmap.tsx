@@ -46,8 +46,7 @@ function getColor(count: number, isDark: boolean): string {
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function ContributionHeatmap({ calendar, className = '' }: ContributionHeatmapProps) {
-    const { resolvedTheme } = useTheme();
-    const isDark = resolvedTheme === 'dark';
+    const { isDark } = useTheme();
 
     // Calculate dimensions
     const width = calendar.weeks.length * (CELL_SIZE + CELL_GAP) + DAY_LABEL_WIDTH;

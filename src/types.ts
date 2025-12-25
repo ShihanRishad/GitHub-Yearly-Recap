@@ -264,7 +264,7 @@ export interface GitHubGraphQLResponse {
 // Slide Types
 // ============================================
 
-export type SlideType = 
+export type SlideType =
   | 'title'
   | 'overview'
   | 'heatmap'
@@ -291,5 +291,6 @@ export type Theme = 'light' | 'dark' | 'system';
 export interface ThemeContextType {
   theme: Theme;
   resolvedTheme: 'light' | 'dark';
+  isDark: boolean;
   setTheme: (theme: Theme) => void;
 }
