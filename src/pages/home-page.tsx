@@ -77,7 +77,7 @@ export function HomePage() {
         >
           <h1 className="text-5xl md:text-7xl font-serif font-normal tracking-tight mb-4">
             Your
-            <span className="italic"> {year} </span>
+            <span className="italic"> {year} Recap </span>
             on
             <span className=""> GitHub</span>
           </h1>
@@ -90,7 +90,7 @@ export function HomePage() {
           transition={{ delay: 0.2 }}
           className="w-full max-w-md"
         >
-          <Card className="bg-card/70">
+          <Card className="bg-card/70 transition-colors duration-500">
             <CardContent className="p-6">
               <form onSubmit={handleSubmit}>
                 <FieldGroup>
