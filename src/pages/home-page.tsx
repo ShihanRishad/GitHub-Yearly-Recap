@@ -74,8 +74,10 @@ export function HomePage() {
           className="text-center mb-10 max-w-2xl"
         >
           <h1 className="text-5xl md:text-7xl font-serif font-normal tracking-tight mb-4">
-            Your {year} on{' '}
-            <span className="">GitHub</span>
+            Your
+            <span className="italic"> {year} </span>
+            on
+            <span className=""> GitHub</span>
           </h1>
         </motion.div>
 
