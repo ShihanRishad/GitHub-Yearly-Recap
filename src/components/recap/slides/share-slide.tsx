@@ -2,14 +2,15 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Download01Icon, Share01Icon, Image01Icon } from '@hugeicons/core-free-icons';
+import { Download01Icon, Share01Icon, Image01Icon, RefreshIcon } from '@hugeicons/core-free-icons';
 import type { RecapData } from '@/types';
 
 interface ShareSlideProps {
     data: RecapData;
+    onRegenerate?: () => void;
 }
 
-export function ShareSlide({ data }: ShareSlideProps) {
+export function ShareSlide({ data, onRegenerate }: ShareSlideProps) {
     const shareUrl = `${window.location.origin}/u/${data.username}/${data.year}`;
     const shareText = `Check out my GitHub Recap ${data.year}! 🚀 ${data.totalContributions} contributions, ${data.longestStreak.count} day streak, and more!`;
 
@@ -81,13 +82,13 @@ export function ShareSlide({ data }: ShareSlideProps) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="flex flex-col sm:flex-row gap-4 justify-center"
+                    className="flex flex-col sm:flex-row gap-4 justify-center items-center"
                 >
                     <Button
                         size="lg"
                         onClick={handleDownload}
                         disabled={!data.ogImageUrl}
-                        className="gap-2"
+                        className="gap-2 w-full sm:w-auto"
                     >
                         <HugeiconsIcon icon={Download01Icon} strokeWidth={2} size={18} />
                         Download Image
@@ -96,11 +97,23 @@ export function ShareSlide({ data }: ShareSlideProps) {
                         size="lg"
                         variant="outline"
                         onClick={handleShare}
-                        className="gap-2"
+                        className="gap-2 w-full sm:w-auto"
                     >
                         <HugeiconsIcon icon={Share01Icon} strokeWidth={2} size={18} />
                         Share Recap
                     </Button>
+
+                    {onRegenerate && (
+                        <Button
+                            size="lg"
+                            variant="ghost"
+                            onClick={onRegenerate}
+                            className="gap-2 w-full sm:w-auto text-muted-foreground hover:text-foreground"
+                        >
+                            <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} size={18} />
+                            Regenerate
+                        </Button>
+                    )}
                 </motion.div>
 
                 {/* Summary */}

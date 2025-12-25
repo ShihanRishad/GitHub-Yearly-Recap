@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Get params from query (preferred) or body
-    const { username, year: queryYear } = req.query;
+    const { username, year: queryYear, force } = req.query;
     const bodyYear = req.body?.year;
     // Prioritize query param, then body, then default
     const year = queryYear || bodyYear || new Date().getFullYear();
@@ -38,8 +38,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        // Check if recap already exists
-        const existingRecap = await getRecap(username, yearNum);
+        // Check if recap already exists (unless forced)
+        const existingRecap = force === 'true' ? null : await getRecap(username, yearNum);
 
         if (existingRecap) {
             if (existingRecap.status === 'ready') {

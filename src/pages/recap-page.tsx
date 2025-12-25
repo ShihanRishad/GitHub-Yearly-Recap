@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -16,10 +16,30 @@ import { LanguagesSlide } from '@/components/recap/slides/languages-slide';
 import { NotesSlide } from '@/components/recap/slides/notes-slide';
 import { ShareSlide } from '@/components/recap/slides/share-slide';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Home01Icon, RefreshIcon } from '@hugeicons/core-free-icons';
+import { Home01Icon, RefreshIcon, PlayIcon } from '@hugeicons/core-free-icons';
 import type { RecapData } from '@/types';
 import { getMockRecapData } from '@/lib/mock-data';
 import { useTheme } from '@/components/theme-provider';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Simple relative time helper
+function getRelativeTime(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) {
+        const mins = Math.floor(diffInSeconds / 60);
+        return `${mins} minute${mins > 1 ? 's' : ''} ago`;
+    }
+    if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    }
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+}
 
 export function RecapPage() {
     const { username, year } = useParams<{ username: string; year: string }>();
@@ -28,25 +48,37 @@ export function RecapPage() {
     const selectedYear = parseInt(year || new Date().getFullYear().toString(), 10);
     const isDemo = searchParams.get('demo') === 'true';
 
-    const [status, setStatus] = useState<'processing' | 'ready' | 'error'>('processing');
+    const [status, setStatus] = useState<'processing' | 'ready' | 'error' | 'found_existing'>('processing');
     const [data, setData] = useState<RecapData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [currentStep, setCurrentStep] = useState<string>('Starting...');
     const { isDark } = useTheme();
 
-    // Fetch recap data - supports demo mode with mock data
-    const fetchRecap = useCallback(async () => {
+    // Timer refs
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const startTimeRef = useRef<number | null>(null);
+
+    // Initial fetch trigger
+    const hasFetched = useRef(false);
+
+    // Fetch recap data
+    const fetchRecap = useCallback(async (force = false) => {
         if (!username) {
             setError('No username provided');
             return;
         }
 
+        // Reset state for new fetch
         setStatus('processing');
         setError(null);
         setCurrentStep('Starting...');
+        // Only reset data if forcing (regenerating), otherwise keep it if we might use it
+        if (force) {
+            setData(null);
+        }
 
-        // Demo mode - use mock data immediately
+        // Demo mode
         if (isDemo) {
             setCurrentStep('Fetching your GitHub data...');
             await new Promise(resolve => setTimeout(resolve, 800));
@@ -65,7 +97,8 @@ export function RecapPage() {
 
         try {
             // Start the recap generation
-            const response = await fetch(`/api/recap?username=${username}&year=${selectedYear}`, {
+            const url = `/api/recap?username=${username}&year=${selectedYear}${force ? '&force=true' : ''}`;
+            const response = await fetch(url, {
                 method: 'POST',
             });
 
@@ -76,8 +109,15 @@ export function RecapPage() {
 
             const initialData = await response.json();
 
-            // If already cached, use it directly
-            if (initialData.status === 'ready' && initialData.data) {
+            // If already cached and NOT forced, show existing found screen
+            if (initialData.status === 'ready' && initialData.data && !force) {
+                setData(initialData.data);
+                setStatus('found_existing');
+                return;
+            }
+
+            // If we somehow got ready status immediately on a force refresh (unlikely but possible race)
+            if (initialData.status === 'ready' && initialData.data && force) {
                 setData(initialData.data);
                 setStatus('ready');
                 return;
@@ -85,7 +125,6 @@ export function RecapPage() {
 
             // Trigger background processing if server requests it
             if (initialData.shouldTrigger) {
-                // Fire and forget (but keep connection open to allow serverless execution)
                 fetch(`/api/process?username=${username}&year=${selectedYear}`, {
                     method: 'POST'
                 }).catch(err => console.error("Trigger processing failed", err));
@@ -128,6 +167,13 @@ export function RecapPage() {
     }, [username, selectedYear, isDemo]);
 
     useEffect(() => {
+        if (!hasFetched.current) {
+            hasFetched.current = true;
+            fetchRecap();
+        }
+    }, [fetchRecap]);
+
+    useEffect(() => {
         if (data) {
             document.title = `${data.displayName || data.username} - GitHub ${data.year} Recap`;
         } else if (status === 'processing') {
@@ -137,9 +183,41 @@ export function RecapPage() {
         }
     }, [data, status]);
 
+    // Handle existing recap timer and shortcuts
     useEffect(() => {
-        fetchRecap();
-    }, [fetchRecap]);
+        if (status === 'found_existing') {
+            // Auto proceed after 5 seconds
+            timerRef.current = setTimeout(() => {
+                setStatus('ready');
+            }, 5000);
+
+            // Access start time for animation sync if needed
+            startTimeRef.current = Date.now();
+
+            const handleKeyDown = (e: KeyboardEvent) => {
+                // Space or ArrowRight -> View Immediately
+                if (e.code === 'Space' || e.code === 'ArrowRight') {
+                    e.preventDefault();
+                    if (timerRef.current) clearTimeout(timerRef.current);
+                    setStatus('ready');
+                }
+                // Enter -> Regenerate
+                if (e.code === 'Enter') {
+                    e.preventDefault();
+                    if (timerRef.current) clearTimeout(timerRef.current);
+                    fetchRecap(true);
+                }
+            };
+
+            window.addEventListener('keydown', handleKeyDown);
+
+            return () => {
+                if (timerRef.current) clearTimeout(timerRef.current);
+                window.removeEventListener('keydown', handleKeyDown);
+            };
+        }
+    }, [status, fetchRecap]);
+
 
     const handlePrevious = () => {
         if (currentSlide > 0) {
@@ -157,6 +235,10 @@ export function RecapPage() {
         setCurrentSlide(index);
     };
 
+    const handleRegenerate = () => {
+        fetchRecap(true);
+    };
+
     // Render slides
     const renderSlides = () => {
         if (!data) return [];
@@ -171,7 +253,7 @@ export function RecapPage() {
             <SocialSlide key="social" data={data} />,
             <LanguagesSlide key="languages" data={data} />,
             <NotesSlide key="notes" data={data} />,
-            <ShareSlide key="share" data={data} />,
+            <ShareSlide key="share" data={data} onRegenerate={handleRegenerate} />,
         ];
     };
 
@@ -206,51 +288,117 @@ export function RecapPage() {
             </header>
 
             {/* Main content */}
-            <main className="flex-1 pt-16">
-                {status === 'processing' && (
-                    <LoadingState
-                        message={`Generating recap for @${username}...`}
-                        currentStep={currentStep}
-                    />
-                )}
-
-                {status === 'error' && (
-                    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">
-                        <LoadingState
-                            error={error || 'Failed to generate recap'}
-                        />
-                        <div className="flex gap-4">
-                            <Button variant="outline" onClick={() => navigate('/')}>
-                                Go Home
-                            </Button>
-                            <Button onClick={fetchRecap} className="gap-2">
-                                <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} size={18} />
-                                Try Again
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
-
-                {status === 'ready' && data && (
-                    <div className="container mx-auto px-4 py-8">
-                        <SlideshowContainer
-                            currentSlide={currentSlide}
-                            onSlideChange={setCurrentSlide}
-                            className="mb-8"
+            <main className="flex-1 pt-16 relative">
+                <AnimatePresence mode="wait">
+                    {status === 'processing' && (
+                        <motion.div
+                            key="processing"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 pt-16 z-20 bg-background"
                         >
-                            {renderSlides()}
-                        </SlideshowContainer>
+                            <LoadingState
+                                message={`Generating recap for @${username}...`}
+                                currentStep={currentStep}
+                            />
+                        </motion.div>
+                    )}
 
-                        <SlideNavigation
-                            currentSlide={currentSlide}
-                            totalSlides={10}
-                            onPrevious={handlePrevious}
-                            onNext={handleNext}
-                            onGoToSlide={handleGoToSlide}
-                        />
-                    </div>
-                )}
+                    {status === 'error' && (
+                        <motion.div
+                            key="error"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 pt-16 z-20 bg-background flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4"
+                        >
+                            <LoadingState
+                                error={error || 'Failed to generate recap'}
+                            />
+                            <div className="flex gap-4">
+                                <Button variant="outline" onClick={() => navigate('/')}>
+                                    Go Home
+                                </Button>
+                                <Button onClick={() => fetchRecap(true)} className="gap-2">
+                                    <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} size={18} />
+                                    Try Again
+                                </Button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {status === 'found_existing' && data && (
+                        <motion.div
+                            key="found_existing"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+                            transition={{ duration: 0.5 }}
+                            className="absolute inset-0 pt-16 z-30 bg-background flex flex-col items-center justify-center"
+                        >
+                            <div className="text-center max-w-md px-4 space-y-8">
+                                <div className="space-y-2">
+                                    <h2 className="text-2xl font-bold tracking-tight">Recap Ready</h2>
+                                    <p className="text-muted-foreground">
+                                        Showing you your recap generated {getRelativeTime(data.generatedAt || new Date().toISOString())}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col items-center gap-6">
+                                    {/* Simple animated loader/timer */}
+                                    <div className="relative w-full max-w-[200px] h-1 bg-secondary rounded-full overflow-hidden">
+                                        <motion.div
+                                            className="absolute left-0 top-0 bottom-0 bg-primary"
+                                            initial={{ width: "0%" }}
+                                            animate={{ width: "100%" }}
+                                            transition={{ duration: 5, ease: "linear" }}
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground/60">
+                                        <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">SPACE</kbd> to view now inside
+                                    </div>
+
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => fetchRecap(true)}
+                                        className="text-muted-foreground hover:text-foreground gap-2 mt-4"
+                                    >
+                                        <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} size={16} />
+                                        Regenerate latest data <kbd className="hidden sm:inline-block ml-1 px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono text-muted-foreground">ENTER</kbd>
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {status === 'ready' && data && (
+                        <motion.div
+                            key="slides"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="container mx-auto px-4 py-8"
+                        >
+                            <SlideshowContainer
+                                currentSlide={currentSlide}
+                                onSlideChange={setCurrentSlide}
+                                className="mb-8"
+                            >
+                                {renderSlides()}
+                            </SlideshowContainer>
+
+                            <SlideNavigation
+                                currentSlide={currentSlide}
+                                totalSlides={10}
+                                onPrevious={handlePrevious}
+                                onNext={handleNext}
+                                onGoToSlide={handleGoToSlide}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </main>
         </div>
     );
