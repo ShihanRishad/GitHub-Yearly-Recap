@@ -80,7 +80,7 @@ export function HomePage() {
           className="w-full max-w-lg flex flex-col items-center gap-6"
         >
           <form onSubmit={handleSubmit} className="w-full relative group">
-            <div className="relative flex items-center w-full transition-all duration-300 transform group-hover:scale-[1.01]">
+            <div className="relative flex items-center w-full transition-all duration-300">
               <span className="absolute left-6 text-muted-foreground text-xl select-none pointer-events-none z-10 font-light">@</span>
               <Input
                 id="username"
@@ -91,7 +91,10 @@ export function HomePage() {
                   setUsername(e.target.value);
                   setError('');
                 }}
-                className="w-full h-16 pl-12 pr-20 rounded-full text-lg bg-background/50 border-2 border-muted hover:border-primary/30 focus-visible:border-primary/50 focus-visible:ring-0 focus-visible:ring-offset-0 transition-all shadow-sm hover:shadow-lg placeholder:font-light"
+                className="w-full h-16 pl-12 pr-20 rounded-full text-lg bg-background/50 
+                border-2 border-muted hover:bg-background/100 focus-visible:border-primary/50
+                focus-visible:ring-0 focus-visible:ring-offset-0 transition-all shadow-sm hover:shadow-lg 
+                hover:border-primary/50 placeholder:font-light"
                 autoComplete="off"
                 autoCapitalize="off"
               />
