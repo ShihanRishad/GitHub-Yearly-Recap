@@ -67,7 +67,7 @@ export function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center h-[33vh] items-center max-w-3xl"
+          className="text-center h-[33vh] flex justify-center items-center max-w-3xl"
         >
           <h1 className="text-5xl md:text-7xl font-serif font-normal tracking-tight mb-10">
             Your
