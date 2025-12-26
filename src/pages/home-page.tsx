@@ -59,13 +59,17 @@ export function HomePage() {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-4 pt-24 pb-12 w-full max-w-4xl mx-auto">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl" />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center mb-12 max-w-3xl"
+          className="text-center h-[33vh] items-center max-w-3xl"
         >
-          <h1 className="text-5xl md:text-7xl font-serif font-normal tracking-tight mb-4">
+          <h1 className="text-5xl md:text-7xl font-serif font-normal tracking-tight mb-10">
             Your
             <span className="italic"> {year} Recap </span>
             on
@@ -77,11 +81,11 @@ export function HomePage() {
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-          className="w-full max-w-lg flex flex-col items-center gap-6"
+          className="w-full max-w-lg flex flex-col h-[47vh] justify-between items-center gap-6"
         >
           <form onSubmit={handleSubmit} className="w-full relative group">
             <div className="relative flex items-center w-full transition-all duration-300">
-              <span className="absolute left-6 text-muted-foreground text-xl select-none pointer-events-none z-10 font-light">@</span>
+              <span className="absolute left-5 text-muted-foreground text-xl select-none pointer-events-none z-10 font-light">@</span>
               <Input
                 id="username"
                 type="text"
@@ -92,11 +96,15 @@ export function HomePage() {
                   setError('');
                 }}
                 className="w-full h-16 pl-12 pr-20 rounded-full text-lg bg-background/50 
-                border-2 border-muted hover:bg-background/100 focus-visible:border-primary/50
+                border-2 border-muted hover:bg-background/80 focus-visible:border-primary/50
                 focus-visible:ring-0 focus-visible:ring-offset-0 transition-all shadow-sm hover:shadow-lg 
-                hover:border-primary/50 placeholder:font-light"
+                hover:border-primary/50 placeholder:font-light focus-visible:bg-background/80"
                 autoComplete="off"
                 autoCapitalize="off"
+                style={{
+                  transition: 'all 0.3s ease-in-out',
+
+                }}
               />
 
               <div className="absolute right-2 top-2 bottom-2 aspect-square z-10">
@@ -104,7 +112,7 @@ export function HomePage() {
                   type="submit"
                   size="icon"
                   disabled={isLoading || !username.trim()}
-                  className="w-full h-full rounded-full shrink-0 transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 shadow-md"
+                  className="w-full h-full transition-colors duration-600 rounded-full shrink-0 disabled:opacity-50"
                 >
                   <motion.div
                     initial={false}
