@@ -81,7 +81,7 @@ export function HomePage() {
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-          className="w-full max-w-lg flex flex-col h-[47vh] justify-between items-center gap-6"
+          className="w-full max-w-lg flex flex-col h-[35vh] justify-between items-center gap-6"
         >
           <form onSubmit={handleSubmit} className="w-full relative group">
             <div className="relative flex items-center w-full transition-all duration-300">
@@ -102,7 +102,7 @@ export function HomePage() {
                 autoComplete="off"
                 autoCapitalize="off"
                 style={{
-                  transition: 'all 0.3s ease-in-out',
+                  transition: 'all 0.2s ease-in-out, box-shadow 0.1s ease-in-out',
 
                 }}
               />
