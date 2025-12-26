@@ -370,7 +370,7 @@ export function RecapPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
                 >
-                  <h2 className="text-3xl font-bold tracking-tight">Recap Ready</h2>
+                  <h2 className="text-3xl font-bold tracking-tight">Recap is Ready</h2>
                   <p className="text-lg text-muted-foreground">
                     Showing you your recap generated {getRelativeTime(data.generatedAt || new Date().toISOString())}
                   </p>
@@ -382,13 +382,12 @@ export function RecapPage() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  {/* Simple animated loader/timer */}
                   <div className="relative w-full max-w-[240px] h-1.5 bg-secondary/50 rounded-full overflow-hidden">
                     <motion.div
                       className="absolute left-0 top-0 bottom-0 bg-primary"
                       initial={{ width: "0%" }}
                       animate={{ width: "100%" }}
-                      transition={{ duration: 5, ease: "linear" }}
+                      transition={{ duration: 3, ease: "linear" }}
                     />
                   </div>
 
