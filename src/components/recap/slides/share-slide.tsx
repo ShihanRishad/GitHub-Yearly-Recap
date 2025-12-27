@@ -39,7 +39,7 @@ export function ShareSlide({ data, onRegenerate }: ShareSlideProps) {
     };
 
     return (
-        <div className="min-h-[70vh] flex flex-col justify-center py-12 px-4">
+        <div className="h-full flex flex-col justify-center pt-24 pb-20 px-4">
             {/* Section header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -59,7 +59,7 @@ export function ShareSlide({ data, onRegenerate }: ShareSlideProps) {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
                 >
-                    <Card className="overflow-hidden mb-6">
+                    <Card className="overflow-hidden mb-6 p-0">
                         <CardContent className="p-0">
                             {data.ogImageUrl ? (
                                 <img

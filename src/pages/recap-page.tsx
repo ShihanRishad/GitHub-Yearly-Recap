@@ -16,7 +16,7 @@ import { LanguagesSlide } from '@/components/recap/slides/languages-slide';
 import { NotesSlide } from '@/components/recap/slides/notes-slide';
 import { ShareSlide } from '@/components/recap/slides/share-slide';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { RefreshIcon } from '@hugeicons/core-free-icons';
+import { RefreshIcon, PauseIcon, PlayIcon } from '@hugeicons/core-free-icons';
 import type { RecapData } from '@/types';
 import { getMockRecapData } from '@/lib/mock-data';
 import { useTheme } from '@/components/theme-provider';
@@ -41,6 +41,20 @@ function getRelativeTime(dateString: string): string {
   return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
+// Slide durations in milliseconds
+const SLIDE_DURATIONS: Record<number, number> = {
+  0: 5000, // Title
+  1: 8000, // Overview
+  2: 8000, // Heatmap
+  3: 6000, // Streaks
+  4: 8000, // PRs/Issues
+  5: 8000, // Repos
+  6: 6000, // Social
+  7: 8000, // Languages
+  8: 8000, // Notes
+  9: 10000, // Share
+};
+
 export function RecapPage() {
   const { username, year } = useParams<{ username: string; year: string }>();
   const [searchParams] = useSearchParams();
@@ -53,14 +67,45 @@ export function RecapPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentStep, setCurrentStep] = useState<string>('Starting...');
+  const [isPaused, setIsPaused] = useState(false);
+  const [feedback, setFeedback] = useState<'paused' | 'resumed' | null>(null);
   const { isDark } = useTheme();
 
   // Timer refs
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
   // Initial fetch trigger
   const hasFetched = useRef(false);
+
+  // Track previous pause state to detect transitions
+  const prevPaused = useRef(isPaused);
+
+  // Feedback Effect
+  useEffect(() => {
+    // Skip if no change (though dependencies usually handle this, good for initial ref sync logic)
+    if (prevPaused.current === isPaused) return;
+
+    if (isPaused) {
+      // Transition to Paused
+      setFeedback('paused');
+      // Disappear after 3s
+      const t = setTimeout(() => setFeedback(null), 3000);
+      prevPaused.current = isPaused;
+      return () => clearTimeout(t);
+    } else {
+      // Transition to Resumed (only if coming from paused)
+      if (prevPaused.current) {
+        setFeedback('resumed');
+        // Disappear after 2s
+        const t = setTimeout(() => setFeedback(null), 2000);
+        prevPaused.current = isPaused;
+        return () => clearTimeout(t);
+      }
+    }
+    prevPaused.current = isPaused;
+  }, [isPaused]);
 
   // Fetch recap data
   const fetchRecap = useCallback(async (force = false) => {
@@ -73,6 +118,7 @@ export function RecapPage() {
     setStatus('processing');
     setError(null);
     setCurrentStep('Starting...');
+    setIsPaused(false);
     // Only reset data if forcing (regenerating), otherwise keep it if we might use it
     if (force) {
       setData(null);
@@ -195,14 +241,14 @@ export function RecapPage() {
       startTimeRef.current = Date.now();
 
       const handleKeyDown = (e: KeyboardEvent) => {
-        // Space or ArrowRight -> View Immediately
-        if (e.code === 'Space' || e.code === 'ArrowRight') {
+        // Space / Enter -> View Immediately
+        if (['Space', 'Enter', 'ArrowRight'].includes(e.code)) {
           e.preventDefault();
           if (timerRef.current) clearTimeout(timerRef.current);
           setStatus('ready');
         }
-        // Enter -> Regenerate
-        if (e.code === 'Enter') {
+        // R / T / G / W -> Regenerate
+        if (['KeyR', 'KeyT', 'KeyG', 'KeyW'].includes(e.code)) {
           e.preventDefault();
           if (timerRef.current) clearTimeout(timerRef.current);
           fetchRecap(true);
@@ -218,25 +264,74 @@ export function RecapPage() {
     }
   }, [status, fetchRecap]);
 
+  // Handle pause shortcuts
+  useEffect(() => {
+    if (status !== 'ready' || currentSlide === 9) return;
 
-  const handlePrevious = () => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle Pause with Space or P
+      if (['Space', 'KeyP'].includes(e.code)) {
+        e.preventDefault();
+        setIsPaused(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [status, currentSlide]);
+
+  // Automatecally change slides
+  useEffect(() => {
+    if (status !== 'ready' || !data || isPaused) return;
+
+    const duration = SLIDE_DURATIONS[currentSlide] || 6000;
+
+    if (slideTimerRef.current) clearTimeout(slideTimerRef.current);
+
+    slideTimerRef.current = setTimeout(() => {
+      if (currentSlide < 9) {
+        setCurrentSlide(prev => prev + 1);
+      }
+    }, duration);
+
+    return () => {
+      if (slideTimerRef.current) clearTimeout(slideTimerRef.current);
+    };
+  }, [currentSlide, status, data, isPaused]);
+
+
+  const handlePrevious = (e?: React.MouseEvent) => {
+    e?.stopPropagation(); // Prevent pause toggle
+    // Resume on manual interaction
+    setIsPaused(false);
     if (currentSlide > 0) {
       setCurrentSlide(currentSlide - 1);
     }
   };
 
-  const handleNext = () => {
+  const handleNext = (e?: React.MouseEvent) => {
+    e?.stopPropagation(); // Prevent pause toggle
+    // Resume on manual interaction
+    setIsPaused(false);
     if (data && currentSlide < 9) {
       setCurrentSlide(currentSlide + 1);
     }
   };
 
   const handleGoToSlide = (index: number) => {
+    // Resume on manual interaction
+    setIsPaused(false);
     setCurrentSlide(index);
   };
 
   const handleRegenerate = () => {
     fetchRecap(true);
+  };
+
+  const togglePause = () => {
+    if (status === 'ready' && currentSlide !== 9) {
+      setIsPaused(prev => !prev);
+    }
   };
 
   // Render slides
@@ -258,7 +353,7 @@ export function RecapPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -284,26 +379,28 @@ export function RecapPage() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 pt-16 relative min-h-screen overflow-hidden">
+      <main className="flex-1 relative overflow-hidden h-[100dvh]" onClick={togglePause}>
         {/* Slides - Always render if data exists */}
         {data && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: 1,
-              scale: status === 'found_existing' ? 0.98 : 1,
-              filter: status === 'found_existing' ? 'blur(4px)' : 'blur(0px)'
-            }}
-            transition={{ duration: 0.5 }}
-            className="container mx-auto px-4 py-8 h-full"
-          >
-            <SlideshowContainer
-              currentSlide={currentSlide}
-              onSlideChange={setCurrentSlide}
-              className="mb-8"
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                scale: status === 'found_existing' ? 0.98 : 1,
+                filter: status === 'found_existing' ? 'blur(4px)' : 'blur(0px)'
+              }}
+              transition={{ duration: 0.5 }}
+              className="h-full w-full overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent relative"
             >
-              {renderSlides()}
-            </SlideshowContainer>
+              <SlideshowContainer
+                currentSlide={currentSlide}
+                onSlideChange={setCurrentSlide}
+                className="min-h-full"
+              >
+                {renderSlides()}
+              </SlideshowContainer>
+            </motion.div>
 
             <SlideNavigation
               currentSlide={currentSlide}
@@ -311,8 +408,37 @@ export function RecapPage() {
               onPrevious={handlePrevious}
               onNext={handleNext}
               onGoToSlide={handleGoToSlide}
+              duration={SLIDE_DURATIONS[currentSlide] || 6000}
+              isPlaying={status === 'ready' && !isPaused && currentSlide !== 9}
             />
-          </motion.div>
+
+            {/* Pause Feedback Overlay */}
+            <AnimatePresence mode="wait">
+              {feedback && status === 'ready' && (
+                <motion.div
+                  key={feedback}
+                  initial={{ opacity: 0, scale: 0.9, y: -30 }} // Coming down from above
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }} // Continuining down slightly
+                  transition={{ type: "spring", stiffness: 300, damping: 24 }}
+                  className="fixed top-[25%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+                >
+                  <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-black/60 
+                  backdrop-blur-xl border border-white/10 shadow-2xl 
+                  text-white"
+                    style={{
+                      backdropFilter: 'blur(10px)',
+                    }}
+                  >
+                    <HugeiconsIcon icon={feedback === 'paused' ? PauseIcon : PlayIcon} size={24} strokeWidth={2.5} />
+                    <span className="font-semibold text-lg tracking-wide">
+                      {feedback === 'paused' ? 'Paused' : 'Resumed'}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
         )}
 
         <AnimatePresence>
@@ -362,6 +488,7 @@ export function RecapPage() {
               exit={{ opacity: 0, y: -50, filter: 'blur(10px)' }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="absolute inset-0 pt-16 z-40 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm"
+              onClick={(e) => e.stopPropagation()} // Prevent pause toggle when clicking overlay
             >
               <div className="text-center max-w-md px-4 space-y-8">
                 <motion.div
@@ -391,16 +518,22 @@ export function RecapPage() {
                     />
                   </div>
 
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <kbd className="px-2 py-1 bg-muted rounded-md text-xs font-mono font-medium border border-border">SPACE</kbd>
-                      to view
-                    </span>
-                    <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                    <span className="flex items-center gap-1.5">
-                      <kbd className="px-2 py-1 bg-muted rounded-md text-xs font-mono font-medium border border-border">ENTER</kbd>
-                      to regenerate
-                    </span>
+                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="flex gap-1.5">
+                        <kbd className="px-2 py-1 bg-muted rounded-md text-xs font-mono font-medium border border-border">SPACE</kbd>
+                        <kbd className="px-2 py-1 bg-muted rounded-md text-xs font-mono font-medium border border-border">ENTER</kbd>
+                      </div>
+                      <span>to view</span>
+                    </div>
+                    <span className="w-px h-8 bg-border" />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="flex gap-1.5">
+                        <kbd className="px-2 py-1 bg-muted rounded-md text-xs font-mono font-medium border border-border">R</kbd>
+                        <kbd className="px-2 py-1 bg-muted rounded-md text-xs font-mono font-medium border border-border">G</kbd>
+                      </div>
+                      <span>to regenerate</span>
+                    </div>
                   </div>
                 </motion.div>
               </div>

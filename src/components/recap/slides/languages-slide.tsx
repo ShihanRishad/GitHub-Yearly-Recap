@@ -11,7 +11,7 @@ export function LanguagesSlide({ data }: LanguagesSlideProps) {
     const topLanguage = topLanguages[0];
 
     return (
-        <div className="min-h-[70vh] flex flex-col justify-center py-12 px-4">
+        <div className="h-full flex flex-col justify-center pt-24 pb-20 px-4">
             {/* Section header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
