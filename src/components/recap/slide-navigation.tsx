@@ -28,7 +28,7 @@ export function SlideNavigation({
     return (
         <>
             {/* Progress dots */}
-            <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-30 p-3 rounded-full bg-background/40 backdrop-blur-md border border-white/10 ${className}`}>
+            <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-30 p-3 rounded-full bg-background/40 backdrop-blur-md border border-white/10 ${className}`}>
                 {Array.from({ length: totalSlides }).map((_, index) => {
                     const isActive = index === currentSlide;
                     return (
@@ -41,15 +41,14 @@ export function SlideNavigation({
                             {/* Track background for active slide, or normal dot for others */}
                             <motion.div
                                 className={`rounded-full shadow-sm transition-colors duration-300 relative overflow-hidden ${isActive
-                                    ? 'bg-muted/50' // Light track background
+                                    ? (isPlaying ? 'bg-muted/50' : 'bg-foreground')
                                     : 'bg-muted-foreground/40 group-hover:bg-muted-foreground/60'
                                     }`}
                                 animate={{
-                                    width: isActive ? 48 : 8, // Expanded width for active pill
+                                    width: isActive && isPlaying ? 48 : 8,
                                     height: 8,
                                 }}
                             >
-                                {/* Progress bar - only visible for active slide */}
                                 {isActive && isPlaying && (
                                     <motion.div
                                         className="absolute inset-y-0 left-0 bg-foreground rounded-full"

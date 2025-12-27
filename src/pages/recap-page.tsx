@@ -16,7 +16,7 @@ import { LanguagesSlide } from '@/components/recap/slides/languages-slide';
 import { NotesSlide } from '@/components/recap/slides/notes-slide';
 import { ShareSlide } from '@/components/recap/slides/share-slide';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { RefreshIcon, PauseIcon } from '@hugeicons/core-free-icons';
+import { RefreshIcon, PauseIcon, PlayIcon } from '@hugeicons/core-free-icons';
 import type { RecapData } from '@/types';
 import { getMockRecapData } from '@/lib/mock-data';
 import { useTheme } from '@/components/theme-provider';
@@ -68,6 +68,7 @@ export function RecapPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentStep, setCurrentStep] = useState<string>('Starting...');
   const [isPaused, setIsPaused] = useState(false);
+  const [feedback, setFeedback] = useState<'paused' | 'resumed' | null>(null);
   const { isDark } = useTheme();
 
   // Timer refs
@@ -77,6 +78,34 @@ export function RecapPage() {
 
   // Initial fetch trigger
   const hasFetched = useRef(false);
+
+  // Track previous pause state to detect transitions
+  const prevPaused = useRef(isPaused);
+
+  // Feedback Effect
+  useEffect(() => {
+    // Skip if no change (though dependencies usually handle this, good for initial ref sync logic)
+    if (prevPaused.current === isPaused) return;
+
+    if (isPaused) {
+      // Transition to Paused
+      setFeedback('paused');
+      // Disappear after 3s
+      const t = setTimeout(() => setFeedback(null), 3000);
+      prevPaused.current = isPaused;
+      return () => clearTimeout(t);
+    } else {
+      // Transition to Resumed (only if coming from paused)
+      if (prevPaused.current) {
+        setFeedback('resumed');
+        // Disappear after 2s
+        const t = setTimeout(() => setFeedback(null), 2000);
+        prevPaused.current = isPaused;
+        return () => clearTimeout(t);
+      }
+    }
+    prevPaused.current = isPaused;
+  }, [isPaused]);
 
   // Fetch recap data
   const fetchRecap = useCallback(async (force = false) => {
@@ -237,7 +266,7 @@ export function RecapPage() {
 
   // Handle pause shortcuts
   useEffect(() => {
-    if (status !== 'ready') return;
+    if (status !== 'ready' || currentSlide === 9) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Toggle Pause with Space or P
@@ -249,7 +278,7 @@ export function RecapPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [status]);
+  }, [status, currentSlide]);
 
   // Automatecally change slides
   useEffect(() => {
@@ -300,7 +329,7 @@ export function RecapPage() {
   };
 
   const togglePause = () => {
-    if (status === 'ready') {
+    if (status === 'ready' && currentSlide !== 9) {
       setIsPaused(prev => !prev);
     }
   };
@@ -353,23 +382,25 @@ export function RecapPage() {
       <main className="flex-1 relative overflow-hidden h-[100dvh]" onClick={togglePause}>
         {/* Slides - Always render if data exists */}
         {data && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: 1,
-              scale: status === 'found_existing' ? 0.98 : 1,
-              filter: status === 'found_existing' ? 'blur(4px)' : 'blur(0px)'
-            }}
-            transition={{ duration: 0.5 }}
-            className="h-full w-full overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent relative"
-          >
-            <SlideshowContainer
-              currentSlide={currentSlide}
-              onSlideChange={setCurrentSlide}
-              className="min-h-full"
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                scale: status === 'found_existing' ? 0.98 : 1,
+                filter: status === 'found_existing' ? 'blur(4px)' : 'blur(0px)'
+              }}
+              transition={{ duration: 0.5 }}
+              className="h-full w-full overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent relative"
             >
-              {renderSlides()}
-            </SlideshowContainer>
+              <SlideshowContainer
+                currentSlide={currentSlide}
+                onSlideChange={setCurrentSlide}
+                className="min-h-full"
+              >
+                {renderSlides()}
+              </SlideshowContainer>
+            </motion.div>
 
             <SlideNavigation
               currentSlide={currentSlide}
@@ -378,27 +409,36 @@ export function RecapPage() {
               onNext={handleNext}
               onGoToSlide={handleGoToSlide}
               duration={SLIDE_DURATIONS[currentSlide] || 6000}
-              isPlaying={status === 'ready' && !isPaused}
+              isPlaying={status === 'ready' && !isPaused && currentSlide !== 9}
             />
 
             {/* Pause Feedback Overlay */}
             <AnimatePresence mode="wait">
-              {isPaused && status === 'ready' && (
+              {feedback && status === 'ready' && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8, y: -20, filter: 'blur(10px)' }}
-                  animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute top-[25%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+                  key={feedback}
+                  initial={{ opacity: 0, scale: 0.9, y: -30 }} // Coming down from above
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }} // Continuining down slightly
+                  transition={{ type: "spring", stiffness: 300, damping: 24 }}
+                  className="fixed top-[25%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
                 >
-                  <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl text-white">
-                    <HugeiconsIcon icon={PauseIcon} size={24} strokeWidth={2.5} />
-                    <span className="font-semibold text-lg tracking-wide">Paused</span>
+                  <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-black/60 
+                  backdrop-blur-xl border border-white/10 shadow-2xl 
+                  text-white"
+                    style={{
+                      backdropFilter: 'blur(10px)',
+                    }}
+                  >
+                    <HugeiconsIcon icon={feedback === 'paused' ? PauseIcon : PlayIcon} size={24} strokeWidth={2.5} />
+                    <span className="font-semibold text-lg tracking-wide">
+                      {feedback === 'paused' ? 'Paused' : 'Resumed'}
+                    </span>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.div>
+          </>
         )}
 
         <AnimatePresence>
