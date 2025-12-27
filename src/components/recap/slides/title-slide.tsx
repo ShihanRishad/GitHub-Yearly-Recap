@@ -7,7 +7,7 @@ interface TitleSlideProps {
 
 export function TitleSlide({ data }: TitleSlideProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 relative z-10">
+    <div className="flex flex-col items-center justify-center h-full pt-24 pb-20 text-center px-4 relative z-10">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <motion.div

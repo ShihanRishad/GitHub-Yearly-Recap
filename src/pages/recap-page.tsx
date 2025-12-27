@@ -41,6 +41,20 @@ function getRelativeTime(dateString: string): string {
   return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
+// Slide durations in milliseconds
+const SLIDE_DURATIONS: Record<number, number> = {
+  0: 5000, // Title
+  1: 8000, // Overview
+  2: 8000, // Heatmap
+  3: 6000, // Streaks
+  4: 8000, // PRs/Issues
+  5: 8000, // Repos
+  6: 6000, // Social
+  7: 8000, // Languages
+  8: 8000, // Notes
+  9: 10000, // Share
+};
+
 export function RecapPage() {
   const { username, year } = useParams<{ username: string; year: string }>();
   const [searchParams] = useSearchParams();
@@ -56,7 +70,9 @@ export function RecapPage() {
   const { isDark } = useTheme();
 
   // Timer refs
+  // Timer refs
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
   // Initial fetch trigger
@@ -218,6 +234,25 @@ export function RecapPage() {
     }
   }, [status, fetchRecap]);
 
+  // Automatecally change slides
+  useEffect(() => {
+    if (status !== 'ready' || !data) return;
+
+    const duration = SLIDE_DURATIONS[currentSlide] || 6000;
+
+    if (slideTimerRef.current) clearTimeout(slideTimerRef.current);
+
+    slideTimerRef.current = setTimeout(() => {
+      if (currentSlide < 9) {
+        setCurrentSlide(prev => prev + 1);
+      }
+    }, duration);
+
+    return () => {
+      if (slideTimerRef.current) clearTimeout(slideTimerRef.current);
+    };
+  }, [currentSlide, status, data]);
+
 
   const handlePrevious = () => {
     if (currentSlide > 0) {
@@ -258,7 +293,7 @@ export function RecapPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -284,7 +319,7 @@ export function RecapPage() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 pt-16 relative min-h-screen overflow-hidden">
+      <main className="flex-1 relative overflow-hidden h-[100dvh]">
         {/* Slides - Always render if data exists */}
         {data && (
           <motion.div
@@ -295,12 +330,12 @@ export function RecapPage() {
               filter: status === 'found_existing' ? 'blur(4px)' : 'blur(0px)'
             }}
             transition={{ duration: 0.5 }}
-            className="container mx-auto px-4 py-8 h-full"
+            className="h-full w-full overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent relative"
           >
             <SlideshowContainer
               currentSlide={currentSlide}
               onSlideChange={setCurrentSlide}
-              className="mb-8"
+              className="min-h-full"
             >
               {renderSlides()}
             </SlideshowContainer>

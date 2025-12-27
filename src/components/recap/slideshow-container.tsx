@@ -103,7 +103,7 @@ export function SlideshowContainer({
                             paginate(-1);
                         }
                     }}
-                    className="w-full"
+                    className="w-full h-full p-0 m-0"
                 >
                     {children[page]}
                 </motion.div>
