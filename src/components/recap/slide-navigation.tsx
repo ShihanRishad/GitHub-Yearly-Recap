@@ -18,8 +18,10 @@ export function SlideNavigation({
     onPrevious,
     onNext,
     onGoToSlide,
+    duration = 6000,
+    isPlaying = true,
     className = '',
-}: SlideNavigationProps) {
+}: SlideNavigationProps & { duration?: number; isPlaying?: boolean }) {
     const canGoPrevious = currentSlide > 0;
     const canGoNext = currentSlide < totalSlides - 1;
 
@@ -27,25 +29,44 @@ export function SlideNavigation({
         <>
             {/* Progress dots */}
             <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-30 p-3 rounded-full bg-background/40 backdrop-blur-md border border-white/10 ${className}`}>
-                {Array.from({ length: totalSlides }).map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => onGoToSlide(index)}
-                        className="group p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
-                        aria-label={`Go to slide ${index + 1}`}
-                    >
-                        <motion.div
-                            className={`rounded-full shadow-sm transition-all duration-300 ${index === currentSlide
-                                ? 'bg-foreground scale-110'
-                                : 'bg-muted-foreground/40 group-hover:bg-muted-foreground/60'
-                                }`}
-                            animate={{
-                                width: index === currentSlide ? 24 : 8,
-                                height: 8,
-                            }}
-                        />
-                    </button>
-                ))}
+                {Array.from({ length: totalSlides }).map((_, index) => {
+                    const isActive = index === currentSlide;
+                    return (
+                        <button
+                            key={index}
+                            onClick={() => onGoToSlide(index)}
+                            className="group p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full relative"
+                            aria-label={`Go to slide ${index + 1}`}
+                        >
+                            {/* Track background for active slide, or normal dot for others */}
+                            <motion.div
+                                className={`rounded-full shadow-sm transition-colors duration-300 relative overflow-hidden ${isActive
+                                    ? 'bg-muted/50' // Light track background
+                                    : 'bg-muted-foreground/40 group-hover:bg-muted-foreground/60'
+                                    }`}
+                                animate={{
+                                    width: isActive ? 48 : 8, // Expanded width for active pill
+                                    height: 8,
+                                }}
+                            >
+                                {/* Progress bar - only visible for active slide */}
+                                {isActive && isPlaying && (
+                                    <motion.div
+                                        className="absolute inset-y-0 left-0 bg-foreground rounded-full"
+                                        initial={{ width: "0%" }}
+                                        animate={{ width: "100%" }}
+                                        transition={{
+                                            duration: duration / 1000,
+                                            ease: "linear",
+                                        }}
+                                        // key changes on slide change ensuring animation resets
+                                        key={`progress-${currentSlide}`}
+                                    />
+                                )}
+                            </motion.div>
+                        </button>
+                    )
+                })}
             </div>
 
             {/* Navigation buttons */}
