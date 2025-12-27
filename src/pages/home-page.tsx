@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/components/theme-provider';
 import {
@@ -12,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
@@ -46,36 +44,32 @@ export function HomePage() {
     // Small delay for visual feedback
     setTimeout(() => {
       navigate(`/u/${username.trim()}/${year}`);
-    }, 300);
+    }, 800);
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 border-b border-border/50">
+    <div className="min-h-screen flex flex-col relative overflow-hidden transition-colors duration-500">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-sm border-b border-border/40 supports-[backdrop-filter]:bg-background/20 transition-colors duration-500">
         <div className="container mx-auto w-full px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img width={80} src={isDark ? "/recap_logo_horizontal_dark.svg" : "/recap_logo_horizontal.svg"} alt="" />
+            <img width={80} src={isDark ? "/recap_logo_horizontal_dark.svg" : "/recap_logo_horizontal.svg"} alt="Recap Logo" />
           </div>
           <ThemeToggle />
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 pt-24 pb-12">
-        {/* Background decoration; Not sure if I should keep it or remove */}
+      <main className="flex-1 flex flex-col items-center justify-center px-4 pt-24 pb-12 w-full max-w-4xl mx-auto">
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl" />
         </div>
-
-        {/* Hero section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-10 max-w-2xl"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-center h-[33vh] flex justify-center items-center max-w-3xl"
         >
-          <h1 className="text-5xl md:text-7xl font-serif font-normal tracking-tight mb-4">
+          <h1 className="text-5xl md:text-7xl font-serif font-normal tracking-tight mb-10">
             Your
             <span className="italic"> {year} Recap </span>
             on
@@ -83,75 +77,98 @@ export function HomePage() {
           </h1>
         </motion.div>
 
-        {/* Form card */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="w-full max-w-md"
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+          className="w-full max-w-lg flex flex-col h-[35vh] justify-between items-center gap-6"
         >
-          <Card className="bg-card/70 transition-colors duration-500">
-            <CardContent className="p-6">
-              <form onSubmit={handleSubmit}>
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="username">GitHub Username</FieldLabel>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
-                      <Input
-                        id="username"
-                        type="text"
-                        placeholder="octocat"
-                        value={username}
-                        onChange={(e) => {
-                          setUsername(e.target.value);
-                          setError('');
-                        }}
-                        className="pl-8"
-                        autoComplete="off"
-                        autoCapitalize="off"
-                      />
-                    </div>
-                    {error && (
-                      <p className="text-sm text-destructive mt-1">{error}</p>
-                    )}
-                  </Field>
+          <form onSubmit={handleSubmit} className="w-full relative group">
+            <div className="relative flex items-center w-full transition-all duration-300">
+              <span className="absolute left-5 text-muted-foreground text-xl select-none pointer-events-none z-10 font-light">@</span>
+              <Input
+                id="username"
+                type="text"
+                placeholder="GitHub username"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setError('');
+                }}
+                className="w-full h-16 pl-12 pr-20 rounded-full text-lg bg-background/50 
+                border-2 border-muted hover:bg-background/80 focus-visible:border-primary/50
+                focus-visible:ring-0 focus-visible:ring-offset-0 transition-all shadow-sm hover:shadow-lg 
+                hover:border-primary/50 placeholder:font-light focus-visible:bg-background/80"
+                autoComplete="off"
+                autoCapitalize="off"
+                style={{
+                  transition: 'all 0.2s ease-in-out, box-shadow 0.1s ease-in-out',
 
-                  <Field>
-                    <FieldLabel htmlFor="year">Year</FieldLabel>
-                    <Select value={year} onValueChange={setYear}>
-                      <SelectTrigger id="year">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {years.map((y) => (
-                          <SelectItem key={y} value={y.toString()}>
-                            {y}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
+                }}
+              />
 
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="w-full gap-2 mt-2"
-                    disabled={isLoading}
+              <div className="absolute right-2 top-2 bottom-2 aspect-square z-10">
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={isLoading || !username.trim()}
+                  className="w-full h-full transition-colors duration-600 rounded-full shrink-0 disabled:opacity-50"
+                >
+                  <motion.div
+                    initial={false}
+                    animate={isLoading ? { x: 20, opacity: 0 } : { x: 0, opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute inset-0 flex items-center justify-center"
                   >
-                    {isLoading ? (
-                      'Generating...'
-                    ) : (
-                      <>
-                        Generate My Recap
-                        <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} size={18} />
-                      </>
-                    )}
-                  </Button>
-                </FieldGroup>
-              </form>
-            </CardContent>
-          </Card>
+                    <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2.5} size={24} />
+                  </motion.div>
+
+                  {isLoading && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <div className="w-5 h-5 border-2 border-primary-foreground border-tr-transparent rounded-full animate-spin" />
+                    </motion.div>
+                  )}
+                </Button>
+              </div>
+            </div>
+            {error && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-destructive text-sm text-center mt-3 absolute w-full -bottom-8"
+              >
+                {error}
+              </motion.p>
+            )}
+          </form>
+
+          {/* Year Selector Badge */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-2"
+          >
+            <Select value={year} onValueChange={setYear}>
+              <SelectTrigger
+                className="w-auto min-w-[100px] h-9 rounded-full bg-secondary/50 border-transparent hover:bg-secondary/80 transition-all px-4 text-sm font-medium focus:ring-0 focus:ring-offset-0 shadow-sm"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((y) => (
+                  <SelectItem key={y} value={y.toString()}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </motion.div>
+
         </motion.div>
       </main>
     </div>
