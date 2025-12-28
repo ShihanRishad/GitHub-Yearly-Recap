@@ -294,3 +294,10 @@ export interface ThemeContextType {
   isDark: boolean;
   setTheme: (theme: Theme) => void;
 }
+
+declare global {
+  interface Window {
+    screenWidth: number;
+    screenHeight: number;
+  }
+}

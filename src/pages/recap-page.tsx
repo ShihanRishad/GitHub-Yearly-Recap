@@ -232,10 +232,10 @@ export function RecapPage() {
   // Handle existing recap timer and shortcuts
   useEffect(() => {
     if (status === 'found_existing') {
-      // Auto proceed after 5 seconds
+      // Auto proceed after 3 seconds
       timerRef.current = setTimeout(() => {
         setStatus('ready');
-      }, 5000);
+      }, 3000);
 
       // Access start time for animation sync if needed
       startTimeRef.current = Date.now();
