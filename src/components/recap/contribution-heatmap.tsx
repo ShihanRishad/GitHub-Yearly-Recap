@@ -88,12 +88,12 @@ export function ContributionHeatmap({ calendar, className = '' }: ContributionHe
 
     return (
         <div className={`flex flex-col items-center w-full ${className}`}>
-            <div className="w-full overflow-x-auto py-2 scrollbar-hide flex justify-center">
+            <div className="w-full overflow-x-auto py-2 scrollbar-minimal flex justify-center">
                 <svg
                     width={width}
                     height={height}
                     viewBox={`0 0 ${width} ${height}`}
-                    className="block shrink-0"
+                    className="block shrink-0 max-w-full h-auto min-w-[250px]"
                     role="img"
                     aria-label={`Contribution graph showing ${calendar.totalContributions} total contributions`}
                 >
