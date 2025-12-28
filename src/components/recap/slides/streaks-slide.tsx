@@ -346,10 +346,10 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
     const isFinalShowcase = phase === 'clock' || (currentPhaseIdx >= statPhases.length - 1 && !hasCurrentStreak && phase === 'longestStreak');
 
     return (
-        <div className="max-h-[calc(100dvh-4rem)] h-[calc(100dvh-4rem)] relative overflow-hidden flex flex-col bg-transparent" ref={containerRef}>
+        <div className="max-h-[calc(100dvh-4rem)] h-[calc(100dvh-4rem)] mt-16 relative overflow-hidden flex flex-col bg-transparent" ref={containerRef}>
 
             {/* 1. Stats Row - Improved animation flow */}
-            <div className="h-16 w-full flex items-center justify-center gap-3 z-20 mt-2">
+            <div className="h-16 w-full flex items-center justify-center gap-3 z-20 translate-y-10">
                 <AnimatePresence mode="sync">
                     {(isActive('activeMonth') || isSettled('activeMonth') || isFinalShowcase) && (
                         <MiniStatCard
