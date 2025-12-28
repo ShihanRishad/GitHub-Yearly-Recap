@@ -11,7 +11,7 @@ interface ContributionHeatmapProps {
 const CELL_SIZE = 12;
 const CELL_GAP = 3;
 const MONTH_LABEL_HEIGHT = 20;
-const DAY_LABEL_WIDTH = 28;
+const DAY_LABEL_WIDTH = 32;
 
 // GitHub contribution colors
 const LIGHT_COLORS = [
@@ -60,13 +60,18 @@ export function ContributionHeatmap({ calendar, className = '' }: ContributionHe
         calendar.weeks.forEach((week, weekIndex) => {
             const firstDay = week.contributionDays[0];
             if (firstDay) {
-                const month = new Date(firstDay.date).toLocaleDateString('en-US', { month: 'short' });
+                const date = new Date(firstDay.date);
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+
                 if (month !== currentMonth) {
-                    currentMonth = month;
-                    labels.push({
-                        name: month,
-                        x: DAY_LABEL_WIDTH + weekIndex * (CELL_SIZE + CELL_GAP),
-                    });
+                    const x = DAY_LABEL_WIDTH + weekIndex * (CELL_SIZE + CELL_GAP);
+
+                    // Avoid overlapping labels - ensure at least 2 weeks (30px) between labels
+                    const lastLabel = labels[labels.length - 1];
+                    if (!lastLabel || x - lastLabel.x > 30) {
+                        currentMonth = month;
+                        labels.push({ name: month, x });
+                    }
                 }
             }
         });
@@ -75,93 +80,95 @@ export function ContributionHeatmap({ calendar, className = '' }: ContributionHe
     }, [calendar.weeks]);
 
     return (
-        <div className={`overflow-x-auto ${className}`}>
-            <svg
-                width={width}
-                height={height}
-                viewBox={`0 0 ${width} ${height}`}
-                className="block"
-                role="img"
-                aria-label={`Contribution graph showing ${calendar.totalContributions} total contributions`}
-            >
-                {/* Month labels */}
-                <g className="fill-muted-foreground" style={{ fontSize: '10px' }}>
-                    {monthLabels.map((label, i) => (
-                        <text key={i} x={label.x} y={12}>
-                            {label.name}
-                        </text>
-                    ))}
-                </g>
+        <div className={`flex flex-col items-center w-full ${className}`}>
+            <div className="w-full overflow-x-auto py-2 scrollbar-hide flex justify-center">
+                <svg
+                    width={width}
+                    height={height}
+                    viewBox={`0 0 ${width} ${height}`}
+                    className="block shrink-0"
+                    role="img"
+                    aria-label={`Contribution graph showing ${calendar.totalContributions} total contributions`}
+                >
+                    {/* Month labels */}
+                    <g className="fill-muted-foreground" style={{ fontSize: '10px' }}>
+                        {monthLabels.map((label, i) => (
+                            <text key={i} x={label.x} y={12}>
+                                {label.name}
+                            </text>
+                        ))}
+                    </g>
 
-                {/* Day labels */}
-                <g className="fill-muted-foreground" style={{ fontSize: '9px' }}>
-                    {[1, 3, 5].map((dayIndex) => (
-                        <text
-                            key={dayIndex}
-                            x={0}
-                            y={MONTH_LABEL_HEIGHT + dayIndex * (CELL_SIZE + CELL_GAP) + CELL_SIZE - 2}
-                        >
-                            {DAYS[dayIndex]}
-                        </text>
-                    ))}
-                </g>
+                    {/* Day labels */}
+                    <g className="fill-muted-foreground" style={{ fontSize: '9px' }}>
+                        {[1, 3, 5].map((dayIndex) => (
+                            <text
+                                key={dayIndex}
+                                x={0}
+                                y={MONTH_LABEL_HEIGHT + dayIndex * (CELL_SIZE + CELL_GAP) + CELL_SIZE - 2}
+                            >
+                                {DAYS[dayIndex]}
+                            </text>
+                        ))}
+                    </g>
 
-                {/* Contribution cells */}
-                <g>
-                    {calendar.weeks.map((week, weekIndex) =>
-                        week.contributionDays.map((day: ContributionDay, dayIndex: number) => {
-                            const x = DAY_LABEL_WIDTH + weekIndex * (CELL_SIZE + CELL_GAP);
-                            const y = MONTH_LABEL_HEIGHT + day.weekday * (CELL_SIZE + CELL_GAP);
+                    {/* Contribution cells */}
+                    <g>
+                        {calendar.weeks.map((week, weekIndex) =>
+                            week.contributionDays.map((day: ContributionDay, dayIndex: number) => {
+                                const x = DAY_LABEL_WIDTH + weekIndex * (CELL_SIZE + CELL_GAP);
+                                const y = MONTH_LABEL_HEIGHT + day.weekday * (CELL_SIZE + CELL_GAP);
 
-                            return (
-                                <motion.rect
-                                    key={day.date}
-                                    x={x}
-                                    y={y}
-                                    width={CELL_SIZE}
-                                    height={CELL_SIZE}
-                                    rx={2}
-                                    ry={2}
-                                    fill={getColor(day.contributionCount, isDark)}
-                                    initial={{ opacity: 0, scale: 0 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{
-                                        delay: (weekIndex * 7 + dayIndex) * 0.002,
-                                        duration: 0.3,
-                                    }}
-                                    className="cursor-pointer"
-                                    role="gridcell"
-                                    aria-label={`${day.contributionCount} contributions on ${new Date(day.date).toLocaleDateString()}`}
-                                >
-                                    <title>
-                                        {day.contributionCount} contribution{day.contributionCount !== 1 ? 's' : ''} on{' '}
-                                        {new Date(day.date).toLocaleDateString('en-US', {
-                                            weekday: 'long',
-                                            month: 'long',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                        })}
-                                    </title>
-                                </motion.rect>
-                            );
-                        })
-                    )}
-                </g>
-            </svg>
+                                return (
+                                    <motion.rect
+                                        key={day.date}
+                                        x={x}
+                                        y={y}
+                                        width={CELL_SIZE}
+                                        height={CELL_SIZE}
+                                        rx={2}
+                                        ry={2}
+                                        fill={getColor(day.contributionCount, isDark)}
+                                        initial={{ opacity: 0, scale: 0 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{
+                                            delay: (weekIndex * 7 + dayIndex) * 0.002,
+                                            duration: 0.3,
+                                        }}
+                                        className="cursor-pointer"
+                                        role="gridcell"
+                                        aria-label={`${day.contributionCount} contributions on ${new Date(day.date).toLocaleDateString()}`}
+                                    >
+                                        <title>
+                                            {day.contributionCount} contribution{day.contributionCount !== 1 ? 's' : ''} on{' '}
+                                            {new Date(day.date).toLocaleDateString('en-US', {
+                                                weekday: 'long',
+                                                month: 'long',
+                                                day: 'numeric',
+                                                year: 'numeric',
+                                            })}
+                                        </title>
+                                    </motion.rect>
+                                );
+                            })
+                        )}
+                    </g>
+                </svg>
+            </div>
 
-            {/* Legend */}
-            <div className="mt-3 flex items-center justify-end gap-2 text-xs text-muted-foreground">
-                <span>Less</span>
-                <div className="flex gap-1">
+            {/* Legend - match SVG width if possible or just align right */}
+            <div className="mt-3 flex items-center justify-end gap-2 text-[10px] text-muted-foreground w-full" style={{ maxWidth: width }}>
+                <span className="opacity-60">Less</span>
+                <div className="flex gap-[3px]">
                     {(isDark ? DARK_COLORS : LIGHT_COLORS).map((color, i) => (
                         <div
                             key={i}
-                            className="h-[10px] w-[10px] rounded-sm"
+                            className="h-[10px] w-[10px] rounded-[2px]"
                             style={{ backgroundColor: color }}
                         />
                     ))}
                 </div>
-                <span>More</span>
+                <span className="opacity-60">More</span>
             </div>
         </div>
     );
