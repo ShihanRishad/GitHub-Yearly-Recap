@@ -8,7 +8,7 @@ interface HeatmapSlideProps {
 
 export function HeatmapSlide({ data }: HeatmapSlideProps) {
     return (
-        <div className="h-full flex flex-col justify-center py-12 px-4 relative">
+        <div className="h-screen flex flex-col justify-center py-12 px-4 relative">
             {/* Section header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
