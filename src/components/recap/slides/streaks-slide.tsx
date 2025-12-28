@@ -43,26 +43,44 @@ function formatDateRange(start: string | null, end: string | null): string {
     return 'Multiple years';
 }
 
-function MiniStatCard({ label, value, color, delay = 0, isActive = false }: { label: string, value: string | number, color: string, delay?: number, isActive?: boolean }) {
+// Updated MiniStatCard with better animation states
+function MiniStatCard({
+    label,
+    value,
+    color,
+    isActive = false,
+    isHighlighted = false // New: for final highlight phase
+}: {
+    label: string,
+    value: string | number,
+    color: string,
+    isActive?: boolean,
+    isHighlighted?: boolean
+}) {
     const colorMap: Record<string, string> = {
         purple: 'text-purple-400 border-purple-500/30 bg-purple-500/10',
         blue: 'text-blue-400 border-blue-500/30 bg-blue-500/10',
         green: 'text-green-400 border-green-500/30 bg-green-500/10',
         orange: 'text-orange-400 border-orange-500/30 bg-orange-500/10',
         red: 'text-red-400 border-red-500/30 bg-red-500/10',
+        cyan: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10',
     };
     const classes = colorMap[color] || colorMap.green;
 
+    // Determine state: active (current focus), highlighted (final show), or settled (dimmed)
+    const showFull = isActive || isHighlighted;
+
     return (
         <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.8 }}
+            initial={{ opacity: 0, y: -30, scale: 0.6 }}
             animate={{
-                opacity: isActive ? 1 : 0.5,
+                opacity: showFull ? 1 : 0.4,
                 y: 0,
-                scale: isActive ? 1.05 : 0.9,
-                filter: isActive ? 'blur(0px)' : 'blur(0.5px)'
+                scale: showFull ? 1.1 : 0.85,
+                filter: showFull ? 'blur(0px)' : 'blur(1px)'
             }}
-            transition={{ delay, duration: 0.5, type: 'spring' }}
+            exit={{ opacity: 0, y: -20, scale: 0.5 }}
+            transition={{ duration: 0.5, type: 'spring', stiffness: 120, damping: 15 }}
             className={`border ${classes} rounded-lg px-3 py-1.5 flex flex-col items-center min-w-[80px]`}
         >
             <span className="text-[10px] uppercase tracking-wider opacity-70">{label}</span>
@@ -83,7 +101,6 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         const checkOrientation = () => {
             setIsPortrait(window.innerHeight > window.innerWidth);
         };
-        // Initial check
         checkOrientation();
         window.addEventListener('resize', checkOrientation);
         return () => window.removeEventListener('resize', checkOrientation);
@@ -97,6 +114,12 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         hasCurrentStreak,
         hasTopHour
     });
+
+    // ViewBox dimensions
+    const VB_WIDTH = 600;
+    const VB_HEIGHT = 520;
+    const VB_CX = VB_WIDTH / 2;  // 300
+    const VB_CY = VB_HEIGHT / 2; // 260
 
     // 1. Process Data
     const processed = useMemo(() => {
@@ -124,13 +147,23 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         const activeWeekEnd = new Date(peakStats.topWeek.weekEnd);
         const activeDayDate = peakStats.topDay.date;
 
+        // Calculate heatmap dimensions for centering
+        const cellSize = 10;
+        const gap = 2;
+        const totalWeeks = contributionCalendar.weeks.length;
+        const heatmapWidth = totalWeeks * (cellSize + gap);
+        const heatmapHeight = 7 * (cellSize + gap);
+
+        // Offset to center the heatmap in the viewBox
+        const heatmapOffsetX = (VB_WIDTH - heatmapWidth) / 2;
+        const heatmapOffsetY = (VB_HEIGHT - heatmapHeight) / 2;
+
         contributionCalendar.weeks.forEach((week, wIdx) => {
             week.contributionDays.forEach((day: ContributionDay) => {
                 const date = new Date(day.date);
                 const monthIndex = date.getMonth();
                 const monthName = MONTH_FULL[monthIndex];
 
-                // Allow targets to be outside the Top Month
                 const isActiveMonth = monthName === activeMonthName;
                 const isActiveWeek = date >= activeWeekStart && date <= activeWeekEnd;
                 const isActiveDay = day.date === activeDayDate;
@@ -142,36 +175,26 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                     date >= new Date(currentStreak.startDate) &&
                     date <= new Date(currentStreak.endDate);
 
-                // --- POSITIONS ---
-                const cellSize = 10;
-                const gap = 2; // Gap between cells within a month
-
-                // 1. Heatmap (Compact Grid)
-                const origX = wIdx * (cellSize + gap);
-                const origY = day.weekday * (cellSize + gap);
+                // 1. Heatmap Position (CENTERED in viewbox)
+                const origX = heatmapOffsetX + wIdx * (cellSize + gap);
+                const origY = heatmapOffsetY + day.weekday * (cellSize + gap);
 
                 // 2. Month Grid (Dynamic Layout)
                 const monthCols = isPortrait ? 3 : 4;
-
                 const mCol = monthIndex % monthCols;
                 const mRow = Math.floor(monthIndex / monthCols);
 
                 const dom = date.getDate();
                 const firstDayOfMonth = new Date(date.getFullYear(), monthIndex, 1).getDay();
-
                 const dayOffset = dom + firstDayOfMonth - 1;
                 const calRow = Math.floor(dayOffset / 7);
                 const calCol = dayOffset % 7;
 
-                // --- NEW DIMENSIONS ---
-                // Block W: 145px (increased from 125)
-                // Block H: 130px (increased from 85)
+                // Block dimensions
                 const blockW = 145;
                 const blockH = 130;
 
-                // Centers calculation for 600x520 ViewBox
-                // Landscape (4x3): 4 * 145 = 580. Left margin = (600-580)/2 = 10.
-                // Portrait (3x4): 3 * 145 = 435. Left margin = (600-435)/2 = 82.5.
+                // Grid offset to center within viewBox
                 const gridOffsetX = isPortrait ? 82 : 10;
                 const gridOffsetY = 20;
 
@@ -181,13 +204,11 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 const itemX = calCol * (cellSize + 1);
                 const itemY = calRow * (cellSize + 1);
 
-                // Add vertical offset for label
                 const labelHeight = 25;
-                const monthGridX = blockX + itemX + 5; // +5 padding inside block
+                const monthGridX = blockX + itemX + 5;
                 const monthGridY = blockY + itemY + labelHeight;
 
-                // Separation Offset:
-                // Add vertical gap between months during 'separate' phase (-90deg).
+                // Separation offset for 'separate' phase
                 const separationOffset = monthIndex * 15;
 
                 cells.push({
@@ -214,9 +235,8 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         // --- CALCULATE CENTROIDS ---
         const targets: Record<string, { x: number, y: number }> = {};
 
-        // Helper to calc center of valid cells
         const calcCenter = (someCells: typeof cells) => {
-            if (!someCells.length) return { x: 300, y: 260 };
+            if (!someCells.length) return { x: VB_CX, y: VB_CY };
             const minX = Math.min(...someCells.map(c => c.monthGridX));
             const maxX = Math.max(...someCells.map(c => c.monthGridX));
             const minY = Math.min(...someCells.map(c => c.monthGridY));
@@ -224,139 +244,168 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
             return { x: (minX + maxX) / 2 + 5, y: (minY + maxY) / 2 + 5 };
         };
 
-        // 1. Active Month (Block Center)
         if (cells.some(c => c.isActiveMonth)) {
             const mCells = cells.filter(c => c.isActiveMonth);
-            // Use the centroid of the cells for better zooming info
             targets['activeMonth'] = calcCenter(mCells);
         }
 
-        // 2. Active Week
         const weekCells = cells.filter(c => c.isActiveWeek);
         if (weekCells.length > 0) targets['activeWeek'] = calcCenter(weekCells);
 
-        // 3. Active Day
         const dayCell = cells.find(c => c.isActiveDay);
         if (dayCell) {
             targets['activeDay'] = { x: dayCell.monthGridX + 5, y: dayCell.monthGridY + 5 };
         }
 
-        // 4. Streaks
         const lCells = cells.filter(c => c.isLongestStreak);
         if (lCells.length > 0) targets['longestStreak'] = calcCenter(lCells);
 
         const cCells = cells.filter(c => c.isCurrentStreak);
         if (cCells.length > 0) targets['currentStreak'] = calcCenter(cCells);
 
-        // Fallback
         ['activeMonth', 'activeWeek', 'activeDay', 'longestStreak', 'currentStreak'].forEach(key => {
-            if (!targets[key]) targets[key] = { x: 300, y: 260 };
+            if (!targets[key]) targets[key] = { x: VB_CX, y: VB_CY };
         });
 
         return { cells, targets };
-    }, [contributionCalendar, peakStats, longestStreak, currentStreak, isPortrait]);
+    }, [contributionCalendar, peakStats, longestStreak, currentStreak, isPortrait, VB_CX, VB_CY, VB_WIDTH, VB_HEIGHT]);
 
-    // 2. Camera Logic
+    // 2. Camera Logic - Fixed centering
     const camera = useMemo(() => {
-        // Center of new ViewBox 600x520
-        const cx = 300;
-        const cy = 260;
-
         switch (phase) {
             case 'heatmap':
-                return { x: 0, y: 0, scale: 1.4, rotate: 0 };
+                // Heatmap is already centered in viewbox, just scale
+                return { x: 0, y: 0, scale: 1.2, rotate: 0 };
             case 'rotate':
-                return { x: 0, y: 100, scale: 1.2, rotate: -90 };
+                // Rotate around center
+                return { x: 0, y: 0, scale: 1.0, rotate: -90 };
             case 'separate':
-                return { x: 0, y: 100, scale: 0.9, rotate: -90 };
+                // Still rotated, but zoom out a bit
+                return { x: 0, y: 0, scale: 0.8, rotate: -90 };
             case 'grid':
             case 'zoomMonths':
                 return { x: 0, y: 0, scale: 1, rotate: 0 };
-            case 'activeMonth':
-                const tM = processed.targets['activeMonth'];
-                return { x: cx - tM.x, y: cy - tM.y, scale: 2.5, rotate: 0 };
-            case 'activeWeek':
-                const tW = processed.targets['activeWeek'];
-                return { x: cx - tW.x, y: cy - tW.y, scale: 4.5, rotate: 0 };
-            case 'activeDay':
-                const tD = processed.targets['activeDay'];
-                return { x: cx - tD.x, y: cy - tD.y, scale: 8, rotate: 0 };
-            case 'longestStreak':
-                const tL = processed.targets['longestStreak'];
-                return { x: cx - tL.x, y: cy - tL.y, scale: 2.5, rotate: 0 };
-            case 'currentStreak':
-                const tC = processed.targets['currentStreak'];
-                return { x: cx - tC.x, y: cy - tC.y, scale: 2.5, rotate: 0 };
+            case 'activeMonth': {
+                const t = processed.targets['activeMonth'];
+                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 2.5, rotate: 0 };
+            }
+            case 'activeWeek': {
+                const t = processed.targets['activeWeek'];
+                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 4.5, rotate: 0 };
+            }
+            case 'activeDay': {
+                const t = processed.targets['activeDay'];
+                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 8, rotate: 0 };
+            }
+            case 'longestStreak': {
+                const t = processed.targets['longestStreak'];
+                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 2.5, rotate: 0 };
+            }
+            case 'currentStreak': {
+                const t = processed.targets['currentStreak'];
+                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 2.5, rotate: 0 };
+            }
             default:
                 return { x: 0, y: 0, scale: 1, rotate: 0 };
         }
-    }, [phase, processed.targets]);
+    }, [phase, processed.targets, VB_CX, VB_CY]);
 
     // 3. Cell Position Logic
     const getCellState = (cell: typeof processed.cells[0]) => {
         if (phase === 'heatmap' || phase === 'rotate') {
-            return { x: cell.origX - 120, y: cell.origY + 40, opacity: 1 };
+            // Already centered via origX/origY
+            return { x: cell.origX, y: cell.origY, opacity: 1 };
         }
         if (phase === 'separate') {
+            // Add separation between months (horizontal offset)
             return {
-                x: cell.origX - 120 + cell.separationOffset,
-                y: cell.origY + 40,
+                x: cell.origX + cell.separationOffset,
+                y: cell.origY,
                 opacity: 0.9
             };
         }
+        // Grid phase and zoom phases use monthGridX/Y
         return { x: cell.monthGridX, y: cell.monthGridY, opacity: 1 };
     };
 
+    // Determine which stats have been shown
+    const statPhases = ['activeMonth', 'activeWeek', 'activeDay', 'longestStreak', 'currentStreak'];
+    const currentPhaseIdx = statPhases.indexOf(phase);
+
+    // isSettled: phase has passed (card collected but dimmed)
     const isSettled = (p: string) => {
-        const order = ['activeMonth', 'activeWeek', 'activeDay', 'longestStreak', 'currentStreak'];
-        const currIdx = order.indexOf(phase);
-        const pIdx = order.indexOf(p);
-        return currIdx >= pIdx;
+        const pIdx = statPhases.indexOf(p);
+        return currentPhaseIdx > pIdx && pIdx >= 0;
     };
 
-    return (
-        <div className="h-[calc(100dvh-4rem)] relative overflow-hidden flex flex-col bg-transparent" ref={containerRef}>
+    // isActive: currently focused phase
+    const isActive = (p: string) => phase === p;
 
-            {/* 1. Settled Stats Row */}
-            <div className="h-16 w-full flex items-center justify-center gap-2 z-20 mt-2">
-                <AnimatePresence>
-                    {(phase === 'activeMonth' || isSettled('activeMonth')) && (
+    // isHighlighted: in final showcase phase (after all stats shown, before clock)
+    // We treat 'currentStreak' as the last stat phase; after that is 'clock' or end
+    const isFinalShowcase = phase === 'clock' || (currentPhaseIdx >= statPhases.length - 1 && !hasCurrentStreak && phase === 'longestStreak');
+
+    return (
+        <div className="max-h-[calc(100dvh-4rem)] h-[calc(100dvh-4rem)] relative overflow-hidden flex flex-col bg-transparent" ref={containerRef}>
+
+            {/* 1. Stats Row - Improved animation flow */}
+            <div className="h-16 w-full flex items-center justify-center gap-3 z-20 mt-2">
+                <AnimatePresence mode="sync">
+                    {(isActive('activeMonth') || isSettled('activeMonth') || isFinalShowcase) && (
                         <MiniStatCard
+                            key="month-card"
                             label="Month"
                             value={peakStats.topMonth.month.slice(0, 3)}
                             color="purple"
-                            isActive={phase === 'activeMonth'}
+                            isActive={isActive('activeMonth')}
+                            isHighlighted={isFinalShowcase}
                         />
                     )}
-                    {(phase === 'activeWeek' || isSettled('activeWeek')) && (
+                    {(isActive('activeWeek') || isSettled('activeWeek') || isFinalShowcase) && (
                         <MiniStatCard
+                            key="week-card"
                             label="Week"
                             value={`${peakStats.topWeek.contributions}`}
                             color="blue"
-                            isActive={phase === 'activeWeek'}
+                            isActive={isActive('activeWeek')}
+                            isHighlighted={isFinalShowcase}
                         />
                     )}
-                    {(phase === 'activeDay' || isSettled('activeDay')) && (
+                    {(isActive('activeDay') || isSettled('activeDay') || isFinalShowcase) && (
                         <MiniStatCard
+                            key="day-card"
                             label="Day"
                             value={`${peakStats.topDay.contributions}`}
                             color="green"
-                            isActive={phase === 'activeDay'}
+                            isActive={isActive('activeDay')}
+                            isHighlighted={isFinalShowcase}
                         />
                     )}
-                    {(phase === 'longestStreak' || isSettled('longestStreak')) && (
+                    {(isActive('longestStreak') || isSettled('longestStreak') || isFinalShowcase) && (
                         <MiniStatCard
+                            key="streak-card"
                             label="Streak"
                             value={`${longestStreak.count}d`}
                             color="orange"
-                            isActive={phase === 'longestStreak'}
+                            isActive={isActive('longestStreak')}
+                            isHighlighted={isFinalShowcase}
+                        />
+                    )}
+                    {hasCurrentStreak && (isActive('currentStreak') || isFinalShowcase) && (
+                        <MiniStatCard
+                            key="current-streak-card"
+                            label="Current"
+                            value={`${currentStreak?.count}d`}
+                            color="cyan"
+                            isActive={isActive('currentStreak')}
+                            isHighlighted={isFinalShowcase}
                         />
                     )}
                 </AnimatePresence>
             </div>
 
             {/* 2. Main Stage */}
-            <div className="flex-1 relative flex items-center justify-center -mt-10">
+            <div className="flex-1 relative flex items-center justify-center">
                 {phase !== 'clock' && (
                     <motion.div
                         className="w-full h-full flex items-center justify-center transform-gpu"
@@ -373,9 +422,9 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                         style={{ transformOrigin: 'center center' }}
                     >
                         <svg
-                            width="600"
-                            height="520"
-                            viewBox="0 0 600 520"
+                            width={VB_WIDTH}
+                            height={VB_HEIGHT}
+                            viewBox={`0 0 ${VB_WIDTH} ${VB_HEIGHT}`}
                             className="overflow-visible"
                         >
                             {/* Month Labels */}
@@ -383,7 +432,6 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                                 processed.cells
                                     .filter((c, i, arr) => arr.findIndex(t => t.monthIndex === c.monthIndex) === i)
                                     .map(m => {
-                                        // Re-calc label pos based on grid blocks matching stored cells
                                         const cols = isPortrait ? 3 : 4;
                                         const col = m.monthIndex % cols;
                                         const row = Math.floor(m.monthIndex / cols);
@@ -393,13 +441,8 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                                         const gridOffsetX = isPortrait ? 82 : 10;
                                         const gridOffsetY = 20;
 
-                                        // Text centered in block. 
-                                        // Grid inside is ~80px wide. Block is 145.
-                                        // Let's align text to the grid start + margin
-                                        // Grid starts at relative X=5.
-                                        // Let's center it roughly around the grid content 
-                                        const x = (col * blockW + gridOffsetX) + 40 + 5;
-                                        const y = row * blockH + gridOffsetY + 10;
+                                        const x = (col * blockW + gridOffsetX) + 45;
+                                        const y = row * blockH + gridOffsetY + 12;
 
                                         const isTarget = m.isActiveMonth && phase === 'activeMonth';
 
@@ -468,9 +511,10 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                     <AnimatePresence>
                         {phase === 'activeMonth' && (
                             <motion.div
-                                initial={{ opacity: 0, y: 100 }}
-                                animate={{ opacity: 1, y: 80 }}
-                                exit={{ opacity: 0 }}
+                                key="am-spotlight"
+                                initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 60, scale: 1 }}
+                                exit={{ opacity: 0, y: 30, scale: 0.8 }}
                                 className="text-center bg-background/80 backdrop-blur-md p-4 rounded-xl border border-purple-500/30"
                             >
                                 <h3 className="text-2xl font-bold text-purple-500">{peakStats.topMonth.month}</h3>
@@ -479,11 +523,11 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                         )}
                         {phase === 'activeDay' && (
                             <motion.div
-                                key="ad-card"
-                                initial={{ opacity: 0, y: 120 }}
-                                animate={{ opacity: 1, y: 120 }}
-                                exit={{ opacity: 0 }}
-                                className="text-center bg-background/80 backdrop-blur-md p-4 rounded-xl border border-green-500/30 mt-20"
+                                key="ad-spotlight"
+                                initial={{ opacity: 0, y: 80, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 100, scale: 1 }}
+                                exit={{ opacity: 0, y: 60, scale: 0.8 }}
+                                className="text-center bg-background/80 backdrop-blur-md p-4 rounded-xl border border-green-500/30"
                             >
                                 <h3 className="text-xl font-bold text-green-500">Best Day</h3>
                                 <p className="text-sm font-semibold">{new Date(peakStats.topDay.date).toDateString()}</p>
@@ -492,11 +536,11 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                         )}
                         {phase === 'longestStreak' && (
                             <motion.div
-                                key="ls-card"
-                                initial={{ opacity: 0, scale: 0.9 }}
+                                key="ls-spotlight"
+                                initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute bottom-20"
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="absolute bottom-24"
                             >
                                 <Card className="border-orange-500/50 bg-background/90 min-w-[200px]">
                                     <CardContent className="p-4 text-center">
@@ -514,11 +558,11 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                         )}
                         {phase === 'currentStreak' && currentStreak && (
                             <motion.div
-                                key="cs-card"
-                                initial={{ opacity: 0, scale: 0.9 }}
+                                key="cs-spotlight"
+                                initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute bottom-20"
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="absolute bottom-24"
                             >
                                 <Card className="border-cyan-500/50 bg-background/90 min-w-[200px]">
                                     <CardContent className="p-4 text-center">
