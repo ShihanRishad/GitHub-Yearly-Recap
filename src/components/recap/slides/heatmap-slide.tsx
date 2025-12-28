@@ -8,12 +8,12 @@ interface HeatmapSlideProps {
 
 export function HeatmapSlide({ data }: HeatmapSlideProps) {
     return (
-        <div className="h-full flex flex-col justify-center pt-24 pb-20 px-4">
+        <div className="h-screen flex flex-col justify-center py-12 px-4 relative">
             {/* Section header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center mb-8"
+                className="text-center mb-12"
             >
                 <h2 className="text-3xl md:text-4xl font-bold mb-3">Contribution Graph</h2>
                 <p className="text-muted-foreground text-lg">
@@ -29,7 +29,7 @@ export function HeatmapSlide({ data }: HeatmapSlideProps) {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
-                className="max-w-5xl mx-auto w-full bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50"
+                className="max-w-4xl mx-auto w-full bg-card/40 backdrop-blur-md rounded-2xl p-4 sm:p-8 border border-white/5 shadow-2xl"
             >
                 <ContributionHeatmap calendar={data.contributionCalendar} />
             </motion.div>
@@ -39,7 +39,7 @@ export function HeatmapSlide({ data }: HeatmapSlideProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="flex flex-wrap justify-center gap-8 mt-8 text-sm"
+                className="flex flex-wrap justify-center gap-x-12 gap-y-6 mt-8 mb-2 text-sm"
             >
                 <div className="text-center">
                     <p className="text-2xl font-bold text-foreground">

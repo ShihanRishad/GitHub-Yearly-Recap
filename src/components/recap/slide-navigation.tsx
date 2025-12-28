@@ -69,7 +69,7 @@ export function SlideNavigation({
             </div>
 
             {/* Navigation buttons */}
-            <div className="absolute inset-y-0 left-0 right-0 pointer-events-none flex items-center justify-between px-2 sm:px-6 z-20">
+            <div className="absolute inset-y-0 left-0 right-0 pointer-events-none flex items-center justify-between px-4 sm:px-8 md:px-12 z-20">
                 <div className="pointer-events-auto">
                     <Button
                         variant="ghost"
