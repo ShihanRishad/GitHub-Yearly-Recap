@@ -270,40 +270,45 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         return { cells, targets };
     }, [contributionCalendar, peakStats, longestStreak, currentStreak, isPortrait, VB_CX, VB_CY, VB_WIDTH, VB_HEIGHT]);
 
-    // 2. Camera Logic - Fixed centering
+    // 2. Camera Logic - Fixed centering with SCALED translation
+    // Key insight: When scaling with transform-origin center, the translation must be 
+    // multiplied by the scale factor to correctly pan the target to the visual center
     const camera = useMemo(() => {
         switch (phase) {
             case 'heatmap':
-                // Heatmap is already centered in viewbox, just scale
                 return { x: 0, y: 0, scale: 1.2, rotate: 0 };
             case 'rotate':
-                // Rotate around center
                 return { x: 0, y: 0, scale: 1.0, rotate: -90 };
             case 'separate':
-                // Still rotated, but zoom out a bit
                 return { x: 0, y: 0, scale: 0.8, rotate: -90 };
             case 'grid':
             case 'zoomMonths':
                 return { x: 0, y: 0, scale: 1, rotate: 0 };
             case 'activeMonth': {
                 const t = processed.targets['activeMonth'];
-                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 2.5, rotate: 0 };
+                const scale = 2.5;
+                // Translation multiplied by scale to account for zoom
+                return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
             }
             case 'activeWeek': {
                 const t = processed.targets['activeWeek'];
-                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 4.5, rotate: 0 };
+                const scale = 4.5;
+                return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
             }
             case 'activeDay': {
                 const t = processed.targets['activeDay'];
-                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 8, rotate: 0 };
+                const scale = 8;
+                return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
             }
             case 'longestStreak': {
                 const t = processed.targets['longestStreak'];
-                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 2.5, rotate: 0 };
+                const scale = 2.5;
+                return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
             }
             case 'currentStreak': {
                 const t = processed.targets['currentStreak'];
-                return { x: VB_CX - t.x, y: VB_CY - t.y, scale: 2.5, rotate: 0 };
+                const scale = 2.5;
+                return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
             }
             default:
                 return { x: 0, y: 0, scale: 1, rotate: 0 };
