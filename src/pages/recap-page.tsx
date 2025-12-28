@@ -46,7 +46,7 @@ const SLIDE_DURATIONS: Record<number, number> = {
   0: 5000, // Title
   1: 8000, // Overview
   2: 8000, // Heatmap
-  3: 6000, // Streaks
+  3: 25000, // Streaks (extended for animations)
   4: 8000, // PRs/Issues
   5: 8000, // Repos
   6: 6000, // Social
