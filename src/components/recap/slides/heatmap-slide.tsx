@@ -39,7 +39,7 @@ export function HeatmapSlide({ data }: HeatmapSlideProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="flex flex-wrap justify-center gap-x-12 gap-y-6 mt-12 mb-8 text-sm"
+                className="flex flex-wrap justify-center gap-x-12 gap-y-6 mt-8 mb-2 text-sm"
             >
                 <div className="text-center">
                     <p className="text-2xl font-bold text-foreground">

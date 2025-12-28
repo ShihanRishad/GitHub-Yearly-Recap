@@ -68,7 +68,14 @@ export function ContributionHeatmap({ calendar, className = '' }: ContributionHe
 
                     // Avoid overlapping labels - ensure at least 2 weeks (30px) between labels
                     const lastLabel = labels[labels.length - 1];
-                    if (!lastLabel || x - lastLabel.x > 30) {
+                    const isTooClose = lastLabel && (x - lastLabel.x < 30);
+
+                    // Special case: If the first label is 'Dec', it's likely the previous year.
+                    // For a "2025 Recap", starting with 'Dec' (2024) is confusing.
+                    // We skip the first label if it's 'Dec' to let 'Jan' be the first visible one.
+                    const isFirstDec = labels.length === 0 && month === 'Dec';
+
+                    if (!isTooClose && !isFirstDec) {
                         currentMonth = month;
                         labels.push({ name: month, x });
                     }
