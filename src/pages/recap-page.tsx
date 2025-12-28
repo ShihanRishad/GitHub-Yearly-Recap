@@ -342,7 +342,7 @@ export function RecapPage() {
       <TitleSlide key="title" data={data} />,
       <OverviewSlide key="overview" data={data} />,
       <HeatmapSlide key="heatmap" data={data} />,
-      <StreaksSlide key="streaks" data={data} />,
+      <StreaksSlide key="streaks" data={data} isPaused={isPaused} />,
       <PRsIssuesSlide key="prs-issues" data={data} />,
       <ReposSlide key="repos" data={data} />,
       <SocialSlide key="social" data={data} />,

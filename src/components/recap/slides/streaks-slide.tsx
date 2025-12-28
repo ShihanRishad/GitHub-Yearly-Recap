@@ -1,42 +1,24 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { Fire03Icon } from '@hugeicons/core-free-icons';
-import { Card, CardContent } from '@/components/ui/card';
 import { AnimatedClock } from '@/components/recap/animated-clock';
 import { useTheme } from '@/components/theme-provider';
+import { Card, CardContent } from '@/components/ui/card';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Fire03Icon } from '@hugeicons/core-free-icons';
+import { useStreaksController } from '../use-streaks-controller';
 import type { RecapData, ContributionDay } from '@/types';
 
 interface StreaksSlideProps {
     data: RecapData;
+    isPaused: boolean;
 }
-
-// Animation phases
-type Phase =
-    | 'heatmap'       // Full heatmap view
-    | 'months'        // Cells group into month blocks
-    | 'activeMonth'   // Zoom to most active month
-    | 'activeWeek'    // Highlight most active week within month
-    | 'activeDay'     // Highlight most active day
-    | 'streaks'       // Show streak cards
-    | 'clock'         // Animated clock
-    | 'final';        // All settled
-
-const PHASE_ORDER: Phase[] = ['heatmap', 'months', 'activeMonth', 'activeWeek', 'activeDay', 'streaks', 'clock', 'final'];
-const PHASE_DURATIONS: Record<Phase, number> = {
-    heatmap: 1500,
-    months: 2000,
-    activeMonth: 2500,
-    activeWeek: 2500,
-    activeDay: 2500,
-    streaks: 3000,
-    clock: 4500,
-    final: 999999,
-};
 
 // GitHub contribution colors
 const DARK_COLORS = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
 const LIGHT_COLORS = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
+
+// const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function getContributionLevel(count: number): number {
     if (count === 0) return 0;
@@ -51,446 +33,461 @@ function getColor(count: number, isDark: boolean): string {
     return isDark ? DARK_COLORS[level] : LIGHT_COLORS[level];
 }
 
+// Helper to format date range for streaks
 function formatDateRange(start: string | null, end: string | null): string {
     if (!start || !end) return 'No streak';
     const startDate = new Date(start);
     const endDate = new Date(end);
-    const formatOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-    return `${startDate.toLocaleDateString('en-US', formatOptions)} - ${endDate.toLocaleDateString('en-US', formatOptions)}`;
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+
+    // If same year
+    if (startDate.getFullYear() === endDate.getFullYear()) {
+        return `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`;
+    }
+    return 'Multiple years';
 }
 
-// Mini stat card for settled state
-interface MiniStatCardProps {
-    label: string;
-    value: string | number;
-    color: string;
-}
-
-function MiniStatCard({ label, value, color }: MiniStatCardProps) {
-    const colorMap: Record<string, string> = {
-        purple: 'text-purple-400 border-purple-500/30',
-        blue: 'text-blue-400 border-blue-500/30',
-        green: 'text-green-400 border-green-500/30',
-        orange: 'text-orange-400 border-orange-500/30',
-        red: 'text-red-400 border-red-500/30',
-    };
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.9 }}
-            animate={{ opacity: 0.6, y: 0, scale: 0.85 }}
-            className="pointer-events-none"
-            style={{ filter: 'blur(0.5px)' }}
-        >
-            <div className={`border ${colorMap[color]} rounded-lg px-2 py-1 bg-card/50`}>
-                <p className="text-[9px] text-muted-foreground">{label}</p>
-                <p className={`text-xs font-bold ${colorMap[color].split(' ')[0]}`}>{value}</p>
-            </div>
-        </motion.div>
-    );
-}
-
-export function StreaksSlide({ data }: StreaksSlideProps) {
+export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
     const { isDark } = useTheme();
     const { peakStats, longestStreak, currentStreak, contributionCalendar } = data;
-    const [phase, setPhase] = useState<Phase>('heatmap');
-    const [clockAnimating, setClockAnimating] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    // Process calendar data into cells with month info
-    const processedCells = useMemo(() => {
+    const hasCurrentStreak = !!currentStreak && currentStreak.count > 0;
+    const hasTopHour = !!peakStats.topHour;
+
+    const { phase } = useStreaksController({
+        isPaused,
+        hasCurrentStreak,
+        hasTopHour
+    });
+
+    // 1. Process Data & Calculate Positions
+    const processed = useMemo(() => {
         const cells: Array<{
             date: string;
             count: number;
-            weekIndex: number;
-            dayIndex: number;
-            month: string;
-            monthNum: number;
-            weekday: number;
+            // Original Grid Positions
+            origX: number;
+            origY: number;
+            // Month Grid Positions
+            monthGridX: number;
+            monthGridY: number;
+            // Metadata
+            monthIndex: number; // 0-11
+            monthName: string;
             isActiveMonth: boolean;
             isActiveWeek: boolean;
             isActiveDay: boolean;
+            isLongestStreak: boolean;
+            isCurrentStreak: boolean;
         }> = [];
 
-        const activeMonth = peakStats.topMonth.month;
-        const activeWeekStart = peakStats.topWeek.weekStart;
-        const activeWeekEnd = peakStats.topWeek.weekEnd;
+        // Targets for camera focus
+        const targets: Record<string, { x: number, y: number }> = {};
+
+        //   const activeMonthIndex = new Date(peakStats.topMonth.year, MONTH_FULL.indexOf(peakStats.topMonth.month)).getMonth();
+        const activeWeekStart = new Date(peakStats.topWeek.weekStart);
+        const activeWeekEnd = new Date(peakStats.topWeek.weekEnd);
         const activeDayDate = peakStats.topDay.date;
 
-        contributionCalendar.weeks.forEach((week, weekIndex) => {
+        // Flatten weeks
+        contributionCalendar.weeks.forEach((week, wIdx) => {
             week.contributionDays.forEach((day: ContributionDay) => {
                 const date = new Date(day.date);
-                const month = date.toLocaleDateString('en-US', { month: 'long' });
-                const monthNum = date.getMonth();
+                const monthIndex = date.getMonth();
+                const monthName = MONTH_FULL[monthIndex];
+                const weekday = day.weekday; // 0-6
 
-                const isActiveMonth = month === activeMonth;
-                const dayDate = new Date(day.date);
-                const weekStartDate = new Date(activeWeekStart);
-                const weekEndDate = new Date(activeWeekEnd);
-                const isActiveWeek = isActiveMonth && dayDate >= weekStartDate && dayDate <= weekEndDate;
+                // Status flags
+                const isActiveMonth = monthName === peakStats.topMonth.month;
+                const isActiveWeek = isActiveMonth && date >= activeWeekStart && date <= activeWeekEnd;
                 const isActiveDay = day.date === activeDayDate;
+
+                const isLongestStreak = longestStreak.startDate && longestStreak.endDate &&
+                    date >= new Date(longestStreak.startDate) &&
+                    date <= new Date(longestStreak.endDate);
+
+                const isCurrentStreak = currentStreak?.startDate && currentStreak?.endDate &&
+                    date >= new Date(currentStreak.startDate) &&
+                    date <= new Date(currentStreak.endDate);
+
+                // --- POSITIONS ---
+                const cellSize = 12;
+                const gap = 3;
+
+                // 1. Heatmap (Standard)
+                const origX = wIdx * (cellSize + gap);
+                const origY = weekday * (cellSize + gap);
+
+                // 2. Month Grid (3x4 Layout)
+                // Col: 0-3, Row: 0-2
+                const mCol = monthIndex % 4;
+                const mRow = Math.floor(monthIndex / 4);
+
+                // Position internal to month block
+                // We need to know which "week of the month" this is approximately
+                const dayOfMonth = date.getDate();
+                const weekOfMonth = Math.floor((dayOfMonth - 1) / 7);
+                const dayOfWeek = weekday;
+
+                const blockOffsetX = mCol * 100; // ample space between blocks
+                const blockOffsetY = mRow * 100;
+
+                const monthGridX = blockOffsetX + (weekOfMonth * (cellSize + 1));
+                const monthGridY = blockOffsetY + (dayOfWeek * (cellSize + 1));
+
+                // Save Target Centers
+                // Center of Active Month
+                if (isActiveMonth) {
+                    // Approximate center of the month block
+                    targets['activeMonth'] = {
+                        x: blockOffsetX + 35, // roughly half block width
+                        y: blockOffsetY + 35
+                    };
+                }
+
+                // Center of Active Week
+                if (isActiveWeek) {
+                    targets['activeWeek'] = { x: monthGridX, y: monthGridY };
+                }
+
+                // Center of Active Day
+                if (isActiveDay) {
+                    targets['activeDay'] = { x: monthGridX, y: monthGridY };
+                }
 
                 cells.push({
                     date: day.date,
                     count: day.contributionCount,
-                    weekIndex,
-                    dayIndex: day.weekday,
-                    month,
-                    monthNum,
-                    weekday: day.weekday,
+                    origX,
+                    origY,
+                    monthGridX,
+                    monthGridY,
+                    monthIndex,
+                    monthName,
                     isActiveMonth,
                     isActiveWeek,
                     isActiveDay,
+                    isLongestStreak: !!isLongestStreak,
+                    isCurrentStreak: !!isCurrentStreak
                 });
             });
         });
 
-        return cells;
-    }, [contributionCalendar, peakStats]);
+        // Fallback targets if missing
+        if (!targets['activeMonth']) targets['activeMonth'] = { x: 150, y: 150 };
+        if (!targets['activeWeek']) targets['activeWeek'] = targets['activeMonth'];
+        if (!targets['activeDay']) targets['activeDay'] = targets['activeMonth'];
 
-    // Group cells by month
-    const monthGroups = useMemo(() => {
-        const groups: Record<string, typeof processedCells> = {};
-        processedCells.forEach(cell => {
-            if (!groups[cell.month]) groups[cell.month] = [];
-            groups[cell.month].push(cell);
-        });
-        return groups;
-    }, [processedCells]);
+        // Streak Targets
+        // Just find the first cell of the streak and target that
+        const longestCell = cells.find(c => c.isLongestStreak);
+        targets['longestStreak'] = longestCell
+            ? { x: longestCell.monthGridX, y: longestCell.monthGridY }
+            : { x: 0, y: 0 };
 
-    // Auto-advance phases
-    useEffect(() => {
-        if (phase === 'final') return;
+        const currentCell = cells.find(c => c.isCurrentStreak);
+        targets['currentStreak'] = currentCell
+            ? { x: currentCell.monthGridX, y: currentCell.monthGridY }
+            : { x: 0, y: 0 };
 
-        const duration = PHASE_DURATIONS[phase];
-        const timer = setTimeout(() => {
-            const currentIndex = PHASE_ORDER.indexOf(phase);
-            if (currentIndex < PHASE_ORDER.length - 1) {
-                const nextPhase = PHASE_ORDER[currentIndex + 1];
-                setPhase(nextPhase);
-                if (nextPhase === 'clock') setClockAnimating(true);
-            }
-        }, duration);
+        return { cells, targets };
+    }, [contributionCalendar, peakStats, longestStreak, currentStreak]);
 
-        return () => clearTimeout(timer);
-    }, [phase]);
+    // 2. Calculate Camera Transform
+    const camera = useMemo(() => {
+        const centerX = 200; // SVG viewBox center X (approx)
+        const centerY = 150; // SVG viewBox center Y (approx)
 
-    // Calculate cell position based on phase
-    const getCellStyle = useCallback((cell: typeof processedCells[0], phaseState: Phase) => {
-        const baseSize = 8;
-        const gap = 2;
+        switch (phase) {
+            case 'heatmap':
+                // Show full heatmap, centered
+                return { x: 0, y: 0, scale: 0.8 };
+            case 'rotate':
+            case 'separate':
+                // Pull back slightly to see the transformation
+                return { x: 0, y: 0, scale: 0.7 };
+            case 'grid':
+            case 'zoomMonths':
+                // Center the 3x4 grid. 
+                // Grid is roughly 400x300. Center is ~200, 150
+                // We want to verify this alignment
+                return { x: -30, y: -20, scale: 0.9 };
+            case 'activeMonth':
+                // Zoom into the specific month block center
+                // We need to translate the SVG so that target is at center
+                // Translate = Center - Target
+                // But since we scale, it's: (Center / Scale) - Target ?? 
+                // Easier with CSS transform on a container: 
+                // translate(ScreenCenter - Target * Scale)
+                // Let's stick to SVG coordinate space for simplicity.
+                // ViewBox center is (Target.x, Target.y) width/scale height/scale
+                const tM = processed.targets['activeMonth'];
+                return {
+                    x: centerX - tM.x,
+                    y: centerY - tM.y,
+                    scale: 2.5
+                };
+            case 'activeWeek':
+                const tW = processed.targets['activeWeek'];
+                return { x: centerX - tW.x, y: centerY - tW.y, scale: 4.5 };
+            case 'activeDay':
+                const tD = processed.targets['activeDay'];
+                return { x: centerX - tD.x, y: centerY - tD.y, scale: 8 };
+            case 'longestStreak':
+                const tL = processed.targets['longestStreak'];
+                return { x: centerX - tL.x, y: centerY - tL.y, scale: 2.2 }; // Pull back to see context
+            case 'currentStreak':
+                const tC = processed.targets['currentStreak'];
+                return { x: centerX - tC.x, y: centerY - tC.y, scale: 2.2 };
+            case 'clock':
+                return { x: 0, y: 0, scale: 1 };
+            default:
+                return { x: 0, y: 0, scale: 1 };
+        }
+    }, [phase, processed.targets]);
 
-        // Heatmap phase - normal grid layout
-        if (phaseState === 'heatmap') {
+    // 3. Helper for Cell Position Interpolation
+    const getCellPos = (cell: typeof processed.cells[0], index: number) => {
+        if (phase === 'heatmap') {
+            return { x: cell.origX, y: cell.origY, opacity: 1 };
+        }
+        if (phase === 'rotate') {
             return {
-                x: cell.weekIndex * (baseSize + gap),
-                y: cell.dayIndex * (baseSize + gap),
-                opacity: 1,
-                scale: 1,
+                x: cell.origY * 2 + 50,
+                y: cell.origX * 0.5 + 20,
+                opacity: 1
+            };
+        }
+        // For distinct separate phase, explode them out deterministically
+        if (phase === 'separate') {
+            const seedX = (index % 7) - 3;
+            const seedY = (index % 5) - 2;
+            return {
+                x: cell.monthGridX + seedX * 10,
+                y: cell.monthGridY + seedY * 10,
+                opacity: 0.8
             };
         }
 
-        // Months phase - group into month blocks (3 rows x 4 cols arrangement)
-        if (phaseState === 'months') {
-            const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-            const monthIdx = monthOrder.indexOf(cell.month);
-            if (monthIdx === -1) return { x: 0, y: 0, opacity: 0.3, scale: 1 };
+        // Grid / Zoom phases -> Snap to month grid
+        return { x: cell.monthGridX, y: cell.monthGridY, opacity: 1 };
+    };
 
-            const col = monthIdx % 4;
-            const row = Math.floor(monthIdx / 4);
-            const blockWidth = 70;
-            const blockHeight = 50;
+    // 4. Spotlight / Dimming Logic
+    const getCellOpacity = (cell: typeof processed.cells[0]) => {
+        if (['heatmap', 'rotate', 'separate', 'grid', 'zoomMonths'].includes(phase)) return 1;
 
-            // Position within month block
-            const cellsInMonth = monthGroups[cell.month] || [];
-            const cellIdx = cellsInMonth.indexOf(cell);
-            const cellCol = cellIdx % 7;
-            const cellRow = Math.floor(cellIdx / 7);
+        // During Focus Phases, dim everything else
+        const DIM = 0.1;
 
-            return {
-                x: col * blockWidth + cellCol * (baseSize + 1) + 10,
-                y: row * blockHeight + cellRow * (baseSize + 1) + 10,
-                opacity: 1,
-                scale: 1,
-            };
+        if (phase === 'activeMonth') {
+            return cell.isActiveMonth ? 1 : DIM;
+        }
+        if (phase === 'activeWeek') {
+            return cell.isActiveWeek ? 1 : DIM;
+        }
+        if (phase === 'activeDay') {
+            return cell.isActiveDay ? 1 : DIM; // Only the day active? Or keep week visible? User wants spotlight.
+        }
+        if (phase === 'longestStreak') {
+            return cell.isLongestStreak ? 1 : DIM;
+        }
+        if (phase === 'currentStreak') {
+            return cell.isCurrentStreak ? 1 : DIM;
         }
 
-        // Active month phase - highlight active month
-        if (phaseState === 'activeMonth' || phaseState === 'activeWeek' || phaseState === 'activeDay') {
-            const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-            const monthIdx = monthOrder.indexOf(cell.month);
-            const col = monthIdx % 4;
-            const row = Math.floor(monthIdx / 4);
-            const blockWidth = 70;
-            const blockHeight = 50;
-
-            const cellsInMonth = monthGroups[cell.month] || [];
-            const cellIdx = cellsInMonth.indexOf(cell);
-            const cellCol = cellIdx % 7;
-            const cellRow = Math.floor(cellIdx / 7);
-
-            let opacity = cell.isActiveMonth ? 1 : 0.15;
-            let scale = cell.isActiveMonth ? 1.1 : 0.9;
-
-            // Week highlight
-            if (phaseState === 'activeWeek' || phaseState === 'activeDay') {
-                if (cell.isActiveWeek) {
-                    opacity = 1;
-                    scale = 1.2;
-                } else if (cell.isActiveMonth) {
-                    opacity = 0.4;
-                    scale = 1;
-                }
-            }
-
-            // Day highlight
-            if (phaseState === 'activeDay') {
-                if (cell.isActiveDay) {
-                    opacity = 1;
-                    scale = 1.5;
-                } else if (cell.isActiveWeek) {
-                    opacity = 0.5;
-                    scale = 1.1;
-                }
-            }
-
-            return {
-                x: col * blockWidth + cellCol * (baseSize + 1) + 10,
-                y: row * blockHeight + cellRow * (baseSize + 1) + 10,
-                opacity,
-                scale,
-            };
-        }
-
-        // Later phases - fade out heatmap
-        return { x: 0, y: 0, opacity: 0, scale: 0.5 };
-    }, [monthGroups]);
-
-    // Which settled cards to show
-    const phaseIndex = PHASE_ORDER.indexOf(phase);
-    const showMonthCard = phaseIndex >= PHASE_ORDER.indexOf('activeWeek');
-    const showWeekCard = phaseIndex >= PHASE_ORDER.indexOf('activeDay');
-    const showDayCard = phaseIndex >= PHASE_ORDER.indexOf('streaks');
-    const showStreakCards = phaseIndex >= PHASE_ORDER.indexOf('clock');
-    const showClock = phaseIndex >= PHASE_ORDER.indexOf('clock');
-    const hideHeatmap = phaseIndex >= PHASE_ORDER.indexOf('streaks');
+        return DIM; // Default dim for other phases (clock)
+    };
 
     return (
-        <div className="h-[calc(100dvh-4rem)] flex flex-col overflow-hidden px-4">
-            {/* Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-3 shrink-0"
-            >
-                <h2 className="text-xl md:text-2xl font-bold">Streaks & Peaks</h2>
-                <p className="text-muted-foreground text-xs">
-                    Your consistency in {data.year}
-                </p>
-            </motion.div>
+        <div className="h-[calc(100dvh-4rem)] relative overflow-hidden flex flex-col items-center justify-center bg-transparent" ref={containerRef}>
 
-            {/* Settled cards row */}
-            <div className="flex justify-center gap-2 py-2 shrink-0 min-h-[40px]">
-                <AnimatePresence>
-                    {showMonthCard && (
-                        <MiniStatCard
-                            key="month"
-                            label="Best Month"
-                            value={`${peakStats.topMonth.contributions}`}
-                            color="purple"
-                        />
-                    )}
-                    {showWeekCard && (
-                        <MiniStatCard
-                            key="week"
-                            label="Best Week"
-                            value={`${peakStats.topWeek.contributions}`}
-                            color="blue"
-                        />
-                    )}
-                    {showDayCard && (
-                        <MiniStatCard
-                            key="day"
-                            label="Best Day"
-                            value={`${peakStats.topDay.contributions}`}
-                            color="green"
-                        />
-                    )}
-                    {showStreakCards && (
-                        <>
-                            <MiniStatCard
-                                key="longest"
-                                label="Longest Streak"
-                                value={`${longestStreak.count}d`}
-                                color="orange"
-                            />
-                            <MiniStatCard
-                                key="current"
-                                label="Current Streak"
-                                value={`${currentStreak.count}d`}
-                                color="red"
-                            />
-                        </>
-                    )}
-                </AnimatePresence>
-            </div>
+            {/* 1. The Stage (SVG Container) */}
+            {phase !== 'clock' && (
+                <motion.div
+                    className="w-full h-full flex items-center justify-center"
+                    animate={{
+                        scale: camera.scale,
+                        x: camera.x,
+                        y: camera.y
+                    }}
+                    transition={{
+                        duration: 1.5,
+                        ease: [0.16, 1, 0.3, 1] // Custom ease for cinematic camera
+                    }}
+                    style={{ transformOrigin: 'center center' }}
+                >
+                    <svg
+                        width="400"
+                        height="350"
+                        viewBox="0 0 400 350"
+                        className="overflow-visible" // Allow cells to fly "out" if needed
+                    >
+                        {/* Month Labels (Only visible in grid/zoom phases) */}
+                        {['grid', 'zoomMonths', 'activeMonth', 'activeWeek', 'activeDay', 'longestStreak', 'currentStreak'].includes(phase) &&
+                            processed.cells
+                                .filter((c, i, arr) => arr.findIndex(t => t.monthIndex === c.monthIndex) === i) // Uniq months
+                                .map(m => {
+                                    // center label above block
+                                    // Block approx 70x70
+                                    const col = m.monthIndex % 4;
+                                    const row = Math.floor(m.monthIndex / 4);
+                                    const x = col * 100 + 35;
+                                    const y = row * 100 - 10;
 
-            {/* Main content */}
-            <div className="flex-1 flex items-center justify-center relative min-h-0">
-                {/* Animated heatmap */}
-                <AnimatePresence>
-                    {!hideHeatmap && (
-                        <motion.div
-                            initial={{ opacity: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ duration: 0.5 }}
-                            className="relative"
-                        >
-                            <svg
-                                width={300}
-                                height={160}
-                                viewBox="0 0 300 160"
-                                className="max-w-full h-auto"
-                            >
-                                {processedCells.map((cell) => {
-                                    const style = getCellStyle(cell, phase);
+                                    // Highlight active month label?
+                                    const isTarget = (phase === 'activeMonth' || phase === 'activeWeek' || phase === 'activeDay') && m.isActiveMonth;
+                                    const isFocusPhase = phase.startsWith('active') || phase.endsWith('Streak');
+                                    const opacity = isTarget ? 1 : (isFocusPhase ? 0.2 : 0.6);
+
                                     return (
-                                        <motion.rect
-                                            key={cell.date}
-                                            width={8}
-                                            height={8}
-                                            rx={1.5}
-                                            fill={getColor(cell.count, isDark)}
-                                            initial={false}
-                                            animate={{
-                                                x: style.x,
-                                                y: style.y,
-                                                opacity: style.opacity,
-                                                scale: style.scale,
-                                            }}
-                                            transition={{
-                                                duration: 0.6,
-                                                ease: [0.16, 1, 0.3, 1],
-                                            }}
-                                        />
+                                        <motion.text
+                                            key={`label-${m.monthIndex}`}
+                                            x={x}
+                                            y={y}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity }}
+                                            className="text-[10px] font-bold fill-current"
+                                            textAnchor="middle"
+                                        >
+                                            {m.monthName}
+                                        </motion.text>
                                     );
-                                })}
-                            </svg>
+                                })
+                        }
 
-                            {/* Phase labels */}
-                            <AnimatePresence mode="wait">
-                                {phase === 'activeMonth' && (
-                                    <motion.div
-                                        key="month-label"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0 }}
-                                        className="absolute -bottom-8 left-0 right-0 text-center"
-                                    >
-                                        <p className="text-sm font-semibold text-purple-400">
-                                            {peakStats.topMonth.month}: {peakStats.topMonth.contributions} contributions
-                                        </p>
-                                    </motion.div>
-                                )}
-                                {phase === 'activeWeek' && (
-                                    <motion.div
-                                        key="week-label"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0 }}
-                                        className="absolute -bottom-8 left-0 right-0 text-center"
-                                    >
-                                        <p className="text-sm font-semibold text-blue-400">
-                                            Best Week: {peakStats.topWeek.contributions} contributions
-                                        </p>
-                                    </motion.div>
-                                )}
-                                {phase === 'activeDay' && (
-                                    <motion.div
-                                        key="day-label"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0 }}
-                                        className="absolute -bottom-8 left-0 right-0 text-center"
-                                    >
-                                        <p className="text-sm font-semibold text-green-400">
-                                            Best Day: {peakStats.topDay.contributions} contributions on {peakStats.topDay.dayOfWeek}
-                                        </p>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                        {/* The CElls */}
+                        {processed.cells.map((cell, i) => {
+                            const pos = getCellPos(cell, i);
+                            const opacity = getCellOpacity(cell);
+                            const color = getColor(cell.count, isDark);
+
+                            return (
+                                <motion.rect
+                                    key={`cell-${i}`}
+                                    width={10}
+                                    height={10}
+                                    rx={2}
+                                    fill={color}
+                                    initial={false}
+                                    animate={{
+                                        x: pos.x,
+                                        y: pos.y,
+                                        opacity: opacity
+                                    }}
+                                    transition={{
+                                        duration: 1.2,
+                                        ease: "easeInOut"
+                                    }}
+                                />
+                            );
+                        })}
+                    </svg>
+                </motion.div>
+            )}
+
+            {/* 2. Spotlight UI Overlays (Titles/Stats that fade in over the zoomed view) */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <AnimatePresence>
+                    {phase === 'activeMonth' && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 40 }}
+                            exit={{ opacity: 0 }}
+                            className="bg-background/80 backdrop-blur-md p-4 rounded-xl border border-purple-500/30 text-center"
+                        >
+                            <h2 className="text-3xl font-bold text-purple-500">{peakStats.topMonth.month}</h2>
+                            <p className="text-sm text-muted-foreground">{peakStats.topMonth.contributions} Contributions</p>
                         </motion.div>
                     )}
-                </AnimatePresence>
-
-                {/* Streaks phase content */}
-                <AnimatePresence>
-                    {phase === 'streaks' && (
+                    {phase === 'activeWeek' && (
                         <motion.div
-                            key="streaks"
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 50 }}
+                            exit={{ opacity: 0 }}
+                            className="bg-background/80 backdrop-blur-md p-4 rounded-xl border border-blue-500/30 text-center"
+                        >
+                            <h2 className="text-2xl font-bold text-blue-500">Most Active Week</h2>
+                            <p className="text-xs text-muted-foreground">
+                                {new Date(peakStats.topWeek.weekStart).toLocaleDateString()}
+                            </p>
+                            <p className="text-xl font-bold">{peakStats.topWeek.contributions}</p>
+                        </motion.div>
+                    )}
+                    {phase === 'activeDay' && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 60 }}
+                            animate={{ opacity: 1, y: 60 }}
+                            exit={{ opacity: 0 }}
+                            className="bg-background/80 backdrop-blur-md p-3 rounded-xl border border-green-500/30 text-center mt-20"
+                        >
+                            <h2 className="text-xl font-bold text-green-500">Best Day</h2>
+                            <p className="text-sm font-semibold">{new Date(peakStats.topDay.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                            <p className="text-2xl font-bold">{peakStats.topDay.contributions}</p>
+                        </motion.div>
+                    )}
+                    {phase === 'longestStreak' && (
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0 }}
-                            className="grid grid-cols-2 gap-3 max-w-xs"
+                            className="absolute bottom-10 flex flex-col items-center"
                         >
-                            <Card className="border-orange-500/30 border">
-                                <CardContent className="p-3 text-center">
-                                    <div className="inline-flex rounded-lg bg-orange-500/10 p-1.5 text-orange-500 mb-2">
-                                        <HugeiconsIcon icon={Fire03Icon} strokeWidth={2} size={16} />
+                            <Card className="border-orange-500/50 bg-background/90 w-64">
+                                <CardContent className="p-4 text-center">
+                                    <div className="flex justify-center mb-2">
+                                        <div className="p-2 bg-orange-500/10 rounded-full text-orange-500">
+                                            <HugeiconsIcon icon={Fire03Icon} size={24} />
+                                        </div>
                                     </div>
-                                    <p className="text-xs text-muted-foreground">🔥 Longest</p>
-                                    <p className="text-2xl font-bold text-orange-500">{longestStreak.count}</p>
-                                    <p className="text-[10px] text-muted-foreground">
-                                        {formatDateRange(longestStreak.startDate, longestStreak.endDate)}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-border/50">
-                                <CardContent className="p-3 text-center">
-                                    <div className="inline-flex rounded-lg bg-secondary p-1.5 text-muted-foreground mb-2">
-                                        <HugeiconsIcon icon={Fire03Icon} strokeWidth={2} size={16} />
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">Current</p>
-                                    <p className="text-2xl font-bold">{currentStreak.count}</p>
-                                    <p className="text-[10px] text-muted-foreground">
-                                        {formatDateRange(currentStreak.startDate, currentStreak.endDate)}
-                                    </p>
+                                    <h3 className="text-lg font-bold text-orange-500">Longest Streak</h3>
+                                    <p className="text-4xl font-black my-2">{longestStreak.count} <span className="text-sm font-normal text-muted-foreground">days</span></p>
+                                    <p className="text-xs text-muted-foreground">{formatDateRange(longestStreak.startDate, longestStreak.endDate)}</p>
                                 </CardContent>
                             </Card>
                         </motion.div>
                     )}
-                </AnimatePresence>
-
-                {/* Clock phase content */}
-                <AnimatePresence>
-                    {(phase === 'clock' || phase === 'final') && peakStats.topHour && (
+                    {phase === 'currentStreak' && (
                         <motion.div
-                            key="clock"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="flex flex-col items-center"
+                            exit={{ opacity: 0 }}
+                            className="absolute bottom-10 flex flex-col items-center"
                         >
-                            <AnimatedClock
-                                hour={peakStats.topHour.hour}
-                                commits={peakStats.topHour.commits}
-                                isAnimating={clockAnimating}
-                                onAnimationComplete={() => setClockAnimating(false)}
-                            />
+                            <Card className="border-cyan-500/50 bg-background/90 w-64">
+                                <CardContent className="p-4 text-center">
+                                    <div className="flex justify-center mb-2">
+                                        <div className="p-2 bg-cyan-500/10 rounded-full text-cyan-500">
+                                            <HugeiconsIcon icon={Fire03Icon} size={24} />
+                                        </div>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-cyan-500">Current Streak</h3>
+                                    <p className="text-4xl font-black my-2">{currentStreak.count} <span className="text-sm font-normal text-muted-foreground">days</span></p>
+                                    <p className="text-xs text-muted-foreground">{formatDateRange(currentStreak.startDate, currentStreak.endDate)}</p>
+                                </CardContent>
+                            </Card>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
 
-            {/* Phase indicator */}
-            <div className="flex justify-center gap-1 py-2 shrink-0">
-                {PHASE_ORDER.slice(0, -1).map((p, i) => (
-                    <div
-                        key={p}
-                        className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${PHASE_ORDER.indexOf(phase) >= i ? 'bg-primary' : 'bg-muted-foreground/30'
-                            }`}
-                    />
-                ))}
-            </div>
+            {/* 3. The Clock (Final Phase) */}
+            <AnimatePresence>
+                {phase === 'clock' && peakStats.topHour && (
+                    <motion.div
+                        className="absolute inset-0 flex items-center justify-center bg-background z-50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                    >
+                        <AnimatedClock
+                            hour={peakStats.topHour.hour}
+                            commits={peakStats.topHour.commits}
+                            isAnimating={true}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

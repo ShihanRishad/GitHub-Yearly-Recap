@@ -6,7 +6,8 @@ interface StatRevealCardProps {
     title: string;
     value: string | number;
     subtitle: string;
-    icon: React.ElementType;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    icon: any;
     accentColor: string; // e.g., 'green', 'blue', 'purple', 'orange'
     state: 'hidden' | 'featured' | 'settled';
     settledIndex?: number; // Position in the settled row
