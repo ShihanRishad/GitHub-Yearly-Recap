@@ -12,13 +12,14 @@ export type StreakPhase =
     | 'activeDay'      // Zoom to most active day
     | 'longestStreak'  // Pan to longest streak
     | 'currentStreak'  // Pan to current streak
+    | 'expandedCards'  // Expanded cards showcase
     | 'clock'          // Show clock
     | 'final';         // Final settled state
 
 const PHASE_ORDER: StreakPhase[] = [
     'heatmap', 'rotate', 'separate', 'grid', 'zoomMonths',
     'activeMonth', 'activeWeek', 'activeDay',
-    'longestStreak', 'currentStreak', 'clock', 'final'
+    'longestStreak', 'currentStreak', 'expandedCards', 'clock', 'final'
 ];
 
 const PHASE_DURATIONS: Record<StreakPhase, number> = {
@@ -32,6 +33,7 @@ const PHASE_DURATIONS: Record<StreakPhase, number> = {
     activeDay: 3000,
     longestStreak: 2500,
     currentStreak: 2500,
+    expandedCards: 4000,  // Time to showcase expanded cards
     clock: 5000,
     final: 999999,
 };

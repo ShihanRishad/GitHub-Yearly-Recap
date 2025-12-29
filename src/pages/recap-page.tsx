@@ -44,13 +44,13 @@ function getRelativeTime(dateString: string): string {
 // Slide durations in milliseconds
 const SLIDE_DURATIONS: Record<number, number> = {
   0: 5000, // Title
-  1: 8000, // Overview
-  2: 8000, // Heatmap
-  3: 25000, // Streaks (extended for animations)
+  1: 6000, // Overview
+  2: 6000, // Heatmap
+  3: 27000, // Streaks + Heatmap
   4: 8000, // PRs/Issues
-  5: 8000, // Repos
-  6: 6000, // Social
-  7: 8000, // Languages
+  5: 6000, // Repos
+  6: 4000, // Social
+  7: 5000, // Languages
   8: 8000, // Notes
   9: 10000, // Share
 };
