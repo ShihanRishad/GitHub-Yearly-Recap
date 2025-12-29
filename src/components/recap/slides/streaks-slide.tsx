@@ -595,8 +595,9 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 exit={{ opacity: 0, y: 30, scale: 0.8 }}
                 className="text-center bg-background/80 backdrop-blur-md p-4 rounded-xl border border-purple-500/30"
               >
-                <h3 className="text-2xl font-bold text-purple-50">{peakStats.topMonth.month}</h3>
-                <p className="text-sm">{peakStats.topMonth.contributions} Contributions</p>
+                <h3 className="text-sm text-purple-50">Most Active Month</h3>
+                <p className="text-xl font-bold">{peakStats.topMonth.month}</p>
+                <p className="text-sm font-semibold">{peakStats.topMonth.contributions} Contributions</p>
               </motion.div>
             )}
             {phase === 'activeWeek' && (
