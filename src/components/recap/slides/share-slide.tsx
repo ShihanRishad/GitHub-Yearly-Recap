@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,9 +15,37 @@ export function ShareSlide({ data, onRegenerate }: ShareSlideProps) {
     const shareUrl = `${window.location.origin}/u/${data.username}/${data.year}`;
     const shareText = `Check out my GitHub Recap ${data.year}! 🚀 ${data.totalContributions} contributions, ${data.longestStreak.count} day streak, and more!`;
 
-    const handleDownload = () => {
-        if (data.ogImageUrl) {
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const handleDownload = async () => {
+        if (!data.ogImageUrl) return;
+        setIsDownloading(true);
+
+        try {
+            // Try to download the image by fetching it and creating a blob URL
+            const response = await fetch(data.ogImageUrl);
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `${data.username}-${data.year}-recap.png`;
+            document.body.appendChild(a);
+            a.click();
+
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+        } catch (error) {
+            console.error('Download failed, falling back to redirect:', error);
             window.open(data.ogImageUrl, '_blank');
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -87,11 +116,15 @@ export function ShareSlide({ data, onRegenerate }: ShareSlideProps) {
                     <Button
                         size="lg"
                         onClick={handleDownload}
-                        disabled={!data.ogImageUrl}
+                        disabled={!data.ogImageUrl || isDownloading}
                         className="gap-2 w-full sm:w-auto"
                     >
-                        <HugeiconsIcon icon={Download01Icon} strokeWidth={2} size={18} />
-                        Download Image
+                        {isDownloading ? (
+                            <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} size={18} className="animate-spin" />
+                        ) : (
+                            <HugeiconsIcon icon={Download01Icon} strokeWidth={2} size={18} />
+                        )}
+                        {isDownloading ? 'Downloading...' : 'Download Image'}
                     </Button>
                     <Button
                         size="lg"
