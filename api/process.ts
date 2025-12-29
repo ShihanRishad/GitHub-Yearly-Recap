@@ -87,6 +87,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             longestStreak: longestStreak.count,
             topLanguage: topLanguages[0]?.name || 'Code',
             totalStars,
+            newRepos: githubData.repositories.length,
+            totalPRs: githubData.prCounts.opened,
+            contributionCalendar: {
+                ...githubData.contributionCalendar,
+                weeks: githubData.contributionCalendar.weeks.map(week => ({
+                    contributionDays: week.contributionDays,
+                    firstDay: week.contributionDays[0]?.date || ''
+                }))
+            },
         });
         console.timeEnd('generateOGImage');
 
@@ -96,7 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const uploadResult = await uploadImage(
             ogImageBuffer,
             'og-images',
-            `${username}-${yearNum}`
+            `${username}-${yearNum}-recap`
         );
         console.timeEnd('uploadImage');
 

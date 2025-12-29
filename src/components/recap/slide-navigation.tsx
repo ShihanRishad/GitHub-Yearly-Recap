@@ -9,6 +9,7 @@ interface SlideNavigationProps {
     onPrevious: () => void;
     onNext: () => void;
     onGoToSlide: (index: number) => void;
+    elapsedTime?: number;
     className?: string;
 }
 
@@ -20,6 +21,7 @@ export function SlideNavigation({
     onGoToSlide,
     duration = 6000,
     isPlaying = true,
+    elapsedTime = 0,
     className = '',
 }: SlideNavigationProps & { duration?: number; isPlaying?: boolean }) {
     const canGoPrevious = currentSlide > 0;
@@ -52,10 +54,10 @@ export function SlideNavigation({
                                 {isActive && isPlaying && (
                                     <motion.div
                                         className="absolute inset-y-0 min-w-[8px] left-0 bg-foreground rounded-full"
-                                        initial={{ width: "0%" }}
+                                        initial={{ width: `${(elapsedTime / duration) * 100}%` }}
                                         animate={{ width: "100%" }}
                                         transition={{
-                                            duration: duration / 1000,
+                                            duration: Math.max(0, duration - elapsedTime) / 1000,
                                             ease: "linear",
                                         }}
                                         // key changes on slide change ensuring animation resets
@@ -76,7 +78,7 @@ export function SlideNavigation({
                         size="icon"
                         onClick={onPrevious}
                         disabled={!canGoPrevious}
-                        className={`w-14 h-14 fixed ${window.screenWidth < 1024 ? 'bottom-1/4' : 'bottom-1/2'} left-[20px] rounded-full bg-background/80 backdrop-blur-md border border-border shadow-lg hover:bg-background hover:scale-105 transition-all text-foreground ${!canGoPrevious ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                        className={`w-14 h-14 fixed bottom-1/4 lg:bottom-1/2 left-[20px] rounded-full bg-background/80 backdrop-blur-md border border-border shadow-lg hover:bg-background hover:scale-105 transition-all text-foreground ${!canGoPrevious ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         aria-label="Previous slide"
                     >
                         <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2.5} size={28} />
@@ -89,7 +91,7 @@ export function SlideNavigation({
                         size="icon"
                         onClick={onNext}
                         disabled={!canGoNext}
-                        className={`w-14 h-14 fixed ${window.screenWidth < 1024 ? 'bottom-1/4' : 'bottom-1/2'} right-[20px] rounded-full bg-background/80 backdrop-blur-md border border-border shadow-lg hover:bg-background hover:scale-105 transition-all text-foreground ${!canGoNext ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                        className={`w-14 h-14 fixed bottom-1/4 lg:bottom-1/2 right-[20px] rounded-full bg-background/80 backdrop-blur-md border border-border shadow-lg hover:bg-background hover:scale-105 transition-all text-foreground ${!canGoNext ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         aria-label="Next slide"
                     >
                         <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2.5} size={28} />

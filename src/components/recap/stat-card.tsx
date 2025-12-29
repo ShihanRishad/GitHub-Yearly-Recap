@@ -42,7 +42,7 @@ function AnimatedNumber({ value, delay = 0 }: { value: number; delay?: number })
                 const progress = Math.min(elapsed / duration, 1);
 
                 // Easing function (ease out cubic)
-                const eased = 1 - Math.pow(1 - progress, 3);
+                const eased = 1 - Math.pow(1 - Math.max(0, progress), 3);
                 const current = Math.floor(eased * value);
 
                 setDisplayValue(current);

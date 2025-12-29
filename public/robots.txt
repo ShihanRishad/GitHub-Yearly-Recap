@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://github-yearly-recap.vercel.app/sitemap.xml
