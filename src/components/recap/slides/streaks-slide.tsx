@@ -77,7 +77,7 @@ function MiniStatCard({
                 opacity: showFull ? 1 : 0.4,
                 y: 0,
                 scale: showFull ? 1.1 : 0.85,
-                filter: showFull ? 'blur(0px)' : 'blur(1px)'
+                filter: showFull ? 'blur(0px)' : 'blur(3px)'
             }}
             exit={{ opacity: 0, y: -20, scale: 0.5 }}
             transition={{ duration: 0.5, type: 'spring', stiffness: 120, damping: 15 }}
@@ -278,9 +278,9 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
             case 'heatmap':
                 return { x: 0, y: 0, scale: 1.2, rotate: 0 };
             case 'rotate':
-                return { x: 0, y: 0, scale: 1.0, rotate: -90 };
+                return { x: 0, y: 0, scale: 1.0, rotate: 90 };
             case 'separate':
-                return { x: 0, y: 0, scale: 0.8, rotate: -90 };
+                return { x: 0, y: 0, scale: 0.8, rotate: 90 };
             case 'grid':
             case 'zoomMonths':
                 return { x: 0, y: 0, scale: 1, rotate: 0 };
@@ -433,7 +433,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                             className="overflow-visible"
                         >
                             {/* Month Labels */}
-                            {['grid', 'zoomMonths', 'activeMonth'].includes(phase) &&
+                            {['grid', 'zoomMonths', 'activeMonth', 'activeWeek', 'activeDay', 'longestStreak', 'currentStreak'].includes(phase) &&
                                 processed.cells
                                     .filter((c, i, arr) => arr.findIndex(t => t.monthIndex === c.monthIndex) === i)
                                     .map(m => {
@@ -449,7 +449,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                                         const x = (col * blockW + gridOffsetX) + 45;
                                         const y = row * blockH + gridOffsetY + 12;
 
-                                        const isTarget = m.isActiveMonth && phase === 'activeMonth';
+                                        const isTarget = m.isActiveMonth && ['activeMonth', 'activeWeek', 'activeDay'].includes(phase);
 
                                         return (
                                             <motion.text
@@ -524,6 +524,19 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                             >
                                 <h3 className="text-2xl font-bold text-purple-500">{peakStats.topMonth.month}</h3>
                                 <p className="text-sm">{peakStats.topMonth.contributions} Contributions</p>
+                            </motion.div>
+                        )}
+                        {phase === 'activeWeek' && (
+                            <motion.div
+                                key="aw-spotlight"
+                                initial={{ opacity: 0, y: 80, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 100, scale: 1 }}
+                                exit={{ opacity: 0, y: 60, scale: 0.8 }}
+                                className="text-center bg-background/80 backdrop-blur-md p-4 rounded-xl border border-green-500/30"
+                            >
+                                <h3 className="text-xl font-bold text-green-500">Most Active Week</h3>
+                                <p className="text-sm font-semibold">{formatDateRange(peakStats.topWeek.weekStart, peakStats.topWeek.weekEnd)}</p>
+                                <p className="text-2xl font-bold">{peakStats.topWeek.contributions}</p>
                             </motion.div>
                         )}
                         {phase === 'activeDay' && (

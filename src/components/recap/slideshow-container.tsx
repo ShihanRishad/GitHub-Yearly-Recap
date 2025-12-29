@@ -63,7 +63,7 @@ export function SlideshowContainer({
     // Keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'Enter') {
                 e.preventDefault();
                 paginate(1);
             } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
