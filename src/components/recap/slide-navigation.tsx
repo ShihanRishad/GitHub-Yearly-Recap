@@ -78,7 +78,7 @@ export function SlideNavigation({
                         size="icon"
                         onClick={onPrevious}
                         disabled={!canGoPrevious}
-                        className={`w-14 h-14 fixed ${window.screenWidth < 1024 ? 'bottom-1/4' : 'bottom-1/2'} left-[20px] rounded-full bg-background/80 backdrop-blur-md border border-border shadow-lg hover:bg-background hover:scale-105 transition-all text-foreground ${!canGoPrevious ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                        className={`w-14 h-14 fixed bottom-1/4 lg:bottom-1/2 left-[20px] rounded-full bg-background/80 backdrop-blur-md border border-border shadow-lg hover:bg-background hover:scale-105 transition-all text-foreground ${!canGoPrevious ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         aria-label="Previous slide"
                     >
                         <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2.5} size={28} />
@@ -91,7 +91,7 @@ export function SlideNavigation({
                         size="icon"
                         onClick={onNext}
                         disabled={!canGoNext}
-                        className={`w-14 h-14 fixed ${window.screenWidth < 1024 ? 'bottom-1/4' : 'bottom-1/2'} right-[20px] rounded-full bg-background/80 backdrop-blur-md border border-border shadow-lg hover:bg-background hover:scale-105 transition-all text-foreground ${!canGoNext ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                        className={`w-14 h-14 fixed bottom-1/4 lg:bottom-1/2 right-[20px] rounded-full bg-background/80 backdrop-blur-md border border-border shadow-lg hover:bg-background hover:scale-105 transition-all text-foreground ${!canGoNext ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         aria-label="Next slide"
                     >
                         <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2.5} size={28} />
