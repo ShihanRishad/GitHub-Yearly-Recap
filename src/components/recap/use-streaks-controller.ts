@@ -28,12 +28,12 @@ const PHASE_DURATIONS: Record<StreakPhase, number> = {
     separate: 1500,
     grid: 1500,
     zoomMonths: 2000,
-    activeMonth: 3000,    // Longer for reading
+    activeMonth: 3000,
     activeWeek: 3000,
     activeDay: 3000,
     longestStreak: 2500,
     currentStreak: 2500,
-    expandedCards: 4000,  // Time to showcase expanded cards
+    expandedCards: 4000,
     clock: 5000,
     final: 999999,
 };

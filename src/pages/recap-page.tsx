@@ -46,7 +46,7 @@ const SLIDE_DURATIONS: Record<number, number> = {
   0: 5000, // Title
   1: 6000, // Overview
   2: 6000, // Heatmap
-  3: 27000, // Streaks + Heatmap
+  3: 30000, // Streaks + Heatmap
   4: 8000, // PRs/Issues
   5: 6000, // Repos
   6: 4000, // Social
@@ -74,7 +74,11 @@ export function RecapPage() {
   // Timer refs
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const slideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const startTimeRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number | null>(null); // For found_existing overlay
+
+  // Track timing for pausing/resuming slides
+  const slideStartTimeRef = useRef<number>(Date.now());
+  const [slideElapsedTime, setSlideElapsedTime] = useState(0);
 
   // Initial fetch trigger
   const hasFetched = useRef(false);
@@ -90,7 +94,6 @@ export function RecapPage() {
     if (isPaused) {
       // Transition to Paused
       setFeedback('paused');
-      // Disappear after 3s
       const t = setTimeout(() => setFeedback(null), 3000);
       prevPaused.current = isPaused;
       return () => clearTimeout(t);
@@ -280,29 +283,54 @@ export function RecapPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [status, currentSlide]);
 
+  useEffect(() => {
+    if (status !== 'ready' || currentSlide === 9) return;
+
+    if (isPaused) {
+      // record how much time has passed
+      const now = Date.now();
+      const elapsed = now - slideStartTimeRef.current;
+      setSlideElapsedTime(prev => prev + elapsed);
+    } else {
+      // reset the start marker
+      slideStartTimeRef.current = Date.now();
+    }
+  }, [isPaused, status, currentSlide]);
+
+  // Reset elapsed time when slide changes
+  useEffect(() => {
+    setSlideElapsedTime(0);
+    slideStartTimeRef.current = Date.now();
+  }, [currentSlide]);
+
   // Automatecally change slides
   useEffect(() => {
-    if (status !== 'ready' || !data || isPaused) return;
+    if (status !== 'ready' || !data || isPaused || currentSlide === 9) return;
 
-    const duration = SLIDE_DURATIONS[currentSlide] || 6000;
+    const totalDuration = SLIDE_DURATIONS[currentSlide] || 6000;
+    // PLAN: apply the "remembered time" logic for all slides; Don't know if it's right
+    const isStreakSlide = currentSlide === 3;
+    const remainingTime = isStreakSlide
+      ? Math.max(0, totalDuration - slideElapsedTime)
+      : totalDuration;
 
     if (slideTimerRef.current) clearTimeout(slideTimerRef.current);
+    slideStartTimeRef.current = Date.now();
 
     slideTimerRef.current = setTimeout(() => {
       if (currentSlide < 9) {
         setCurrentSlide(prev => prev + 1);
       }
-    }, duration);
+    }, remainingTime);
 
     return () => {
       if (slideTimerRef.current) clearTimeout(slideTimerRef.current);
     };
-  }, [currentSlide, status, data, isPaused]);
+  }, [currentSlide, status, data, isPaused, slideElapsedTime]);
 
 
   const handlePrevious = (e?: React.MouseEvent) => {
-    e?.stopPropagation(); // Prevent pause toggle
-    // Resume on manual interaction
+    e?.stopPropagation();
     setIsPaused(false);
     if (currentSlide > 0) {
       setCurrentSlide(currentSlide - 1);
@@ -310,8 +338,7 @@ export function RecapPage() {
   };
 
   const handleNext = (e?: React.MouseEvent) => {
-    e?.stopPropagation(); // Prevent pause toggle
-    // Resume on manual interaction
+    e?.stopPropagation();
     setIsPaused(false);
     if (data && currentSlide < 9) {
       setCurrentSlide(currentSlide + 1);
@@ -410,6 +437,7 @@ export function RecapPage() {
               onGoToSlide={handleGoToSlide}
               duration={SLIDE_DURATIONS[currentSlide] || 6000}
               isPlaying={status === 'ready' && !isPaused && currentSlide !== 9}
+              elapsedTime={currentSlide === 3 ? slideElapsedTime : 0}
             />
 
             {/* Pause Feedback Overlay */}

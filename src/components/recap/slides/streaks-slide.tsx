@@ -65,7 +65,6 @@ function MiniStatCard({
   };
   const classes = colorMap[color] || colorMap.green;
 
-  // Determine state: active (current focus), highlighted (final show), or settled (dimmed)
   const showFull = isActive || isHighlighted;
 
   return (
@@ -104,37 +103,12 @@ function ExpandedStatCard({
   index: number;
   total: number;
 }) {
-  const colorMap: Record<string, { text: string; border: string; bg: string; glow: string }> = {
-    purple: {
-      text: 'text-purple-400',
-      border: 'border-purple-500/40',
-      bg: 'bg-gradient-to-br from-purple-500/20 to-purple-600/10',
-      glow: 'shadow-purple-500/25'
-    },
-    blue: {
-      text: 'text-blue-400',
-      border: 'border-blue-500/40',
-      bg: 'bg-gradient-to-br from-blue-500/20 to-blue-600/10',
-      glow: 'shadow-blue-500/25'
-    },
-    green: {
-      text: 'text-green-400',
-      border: 'border-green-500/40',
-      bg: 'bg-gradient-to-br from-green-500/20 to-green-600/10',
-      glow: 'shadow-green-500/25'
-    },
-    orange: {
-      text: 'text-orange-400',
-      border: 'border-orange-500/40',
-      bg: 'bg-gradient-to-br from-orange-500/20 to-orange-600/10',
-      glow: 'shadow-orange-500/25'
-    },
-    cyan: {
-      text: 'text-cyan-400',
-      border: 'border-cyan-500/40',
-      bg: 'bg-gradient-to-br from-cyan-500/20 to-cyan-600/10',
-      glow: 'shadow-cyan-500/25'
-    },
+  const colorMap: Record<string, { text: string; accent: string }> = {
+    purple: { text: 'text-purple-500 dark:text-purple-400', accent: 'border-grey-500/20 bg-purple-500/5' },
+    blue: { text: 'text-blue-500 dark:text-blue-400', accent: 'border-grey-500/20 bg-blue-500/20' },
+    green: { text: 'text-green-500 dark:text-green-400', accent: 'border-grey-500/20 bg-green-500/5' },
+    orange: { text: 'text-orange-500 dark:text-orange-400', accent: 'border-grey-500/20 bg-orange-500/5' },
+    cyan: { text: 'text-cyan-100 dark:text-cyan-100', accent: 'border-grey-500/20 bg-cyan-500/5' },
   };
   const colors = colorMap[color] || colorMap.green;
 
@@ -155,28 +129,25 @@ function ExpandedStatCard({
         damping: 15
       }}
       className={`
-                relative overflow-hidden rounded-2xl border-2 ${colors.border} ${colors.bg}
-                backdrop-blur-xl shadow-lg ${colors.glow}
-                p-5 flex flex-col items-center justify-center
+                relative overflow-hidden rounded-xl border ${colors.accent} bg-card
+                backdrop-blur-sm shadow-sm
+                p-5 flex flex-col items-start justify-center
                 w-full min-h-[120px]
             `}
     >
-      {/* Decorative glow effect */}
-      <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full ${colors.bg} blur-2xl opacity-50`} />
-
       {icon && (
         <div className={`mb-2 ${colors.text}`}>
           {icon}
         </div>
       )}
-      <span className={`text-xs uppercase tracking-widest opacity-80 ${colors.text}`}>
+      <span className={`text-[10px] uppercase tracking-[0.2em] font-medium opacity-60 ${colors.text}`}>
         {label}
       </span>
-      <span className={`text-3xl font-black mt-1 ${colors.text}`}>
+      <span className={`text-4xl font-bold mt-1 tracking-tight ${colors.text}`}>
         {value}
       </span>
       {subValue && (
-        <span className="text-xs text-muted-foreground mt-1">
+        <span className="text-xs text-muted-foreground mt-2 font-medium">
           {subValue}
         </span>
       )}
@@ -377,33 +348,39 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
       case 'separate':
         return { x: 0, y: 0, scale: 0.8, rotate: 90 };
       case 'grid':
-      case 'zoomMonths':
-        return { x: 0, y: 0, scale: 1, rotate: 0 };
+      case 'zoomMonths': {
+        const scale = isPortrait ? 0.75 : 1;
+        return { x: 0, y: 0, scale, rotate: 0 };
+      }
       case 'activeMonth': {
         const t = processed.targets['activeMonth'];
-        const scale = 2.5;
-        // Translation multiplied by scale to account for zoom
-        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
+        const scale = isPortrait ? 1.6 : 2.5;
+        const yOffset = isPortrait ? -40 : 0;
+        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale + yOffset, scale, rotate: 0 };
       }
       case 'activeWeek': {
         const t = processed.targets['activeWeek'];
-        const scale = 4.5;
-        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
+        const scale = isPortrait ? 2.8 : 4.5;
+        const yOffset = isPortrait ? -60 : 0;
+        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale + yOffset, scale, rotate: 0 };
       }
       case 'activeDay': {
         const t = processed.targets['activeDay'];
-        const scale = 8;
-        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
+        const scale = isPortrait ? 5 : 8;
+        const yOffset = isPortrait ? -80 : 0;
+        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale + yOffset, scale, rotate: 0 };
       }
       case 'longestStreak': {
         const t = processed.targets['longestStreak'];
-        const scale = 2.5;
-        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
+        const scale = isPortrait ? 1.6 : 2.5;
+        const yOffset = isPortrait ? -100 : 0;
+        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale + yOffset, scale, rotate: 0 };
       }
       case 'currentStreak': {
         const t = processed.targets['currentStreak'];
-        const scale = 2.5;
-        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale, scale, rotate: 0 };
+        const scale = isPortrait ? 1.6 : 2.5;
+        const yOffset = isPortrait ? -100 : 0;
+        return { x: (VB_CX - t.x) * scale, y: (VB_CY - t.y) * scale + yOffset, scale, rotate: 0 };
       }
       default:
         return { x: 0, y: 0, scale: 1, rotate: 0 };
@@ -608,7 +585,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         )}
 
         {/* 3. Spotlights */}
-        <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
+        <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-end pb-50">
           <AnimatePresence>
             {phase === 'activeMonth' && (
               <motion.div
@@ -618,7 +595,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 exit={{ opacity: 0, y: 30, scale: 0.8 }}
                 className="text-center bg-background/80 backdrop-blur-md p-4 rounded-xl border border-purple-500/30"
               >
-                <h3 className="text-2xl font-bold text-purple-500">{peakStats.topMonth.month}</h3>
+                <h3 className="text-2xl font-bold text-purple-50">{peakStats.topMonth.month}</h3>
                 <p className="text-sm">{peakStats.topMonth.contributions} Contributions</p>
               </motion.div>
             )}
@@ -630,7 +607,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 exit={{ opacity: 0, y: 60, scale: 0.8 }}
                 className="text-center bg-background/80 backdrop-blur-md p-4 rounded-xl border border-green-500/30"
               >
-                <h3 className="text-xl font-bold text-green-500">Most Active Week</h3>
+                <h3 className="text-xl font-bold text-green-50">Most Active Week</h3>
                 <p className="text-sm font-semibold">{formatDateRange(peakStats.topWeek.weekStart, peakStats.topWeek.weekEnd)}</p>
                 <p className="text-2xl font-bold">{peakStats.topWeek.contributions}</p>
               </motion.div>
@@ -661,7 +638,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                     <div className="flex justify-center mb-2">
                       <HugeiconsIcon icon={Fire03Icon} className="text-orange-500 w-6 h-6" />
                     </div>
-                    <p className="text-3xl font-black text-orange-500">{longestStreak.count}</p>
+                    <p className="text-3xl font-black text-orange-50">{longestStreak.count}</p>
                     <p className="text-xs text-muted-foreground">DAY STREAK</p>
                     <p className="text-[10px] text-muted-foreground mt-1">
                       {formatDateRange(longestStreak.startDate, longestStreak.endDate)}
@@ -678,12 +655,12 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="absolute bottom-24"
               >
-                <Card className="border-cyan-500/50 bg-background/90 min-w-[200px]">
+                <Card className="border-cyan-500/50 bg-background/90 h-fit min-w-[200px]">
                   <CardContent className="p-4 text-center">
                     <div className="flex justify-center mb-2">
                       <HugeiconsIcon icon={Fire03Icon} className="text-cyan-500 w-6 h-6" />
                     </div>
-                    <p className="text-3xl font-black text-cyan-500">{currentStreak.count}</p>
+                    <p className="text-3xl font-black mb-2 text-cyan-50">{currentStreak.count}</p>
                     <p className="text-xs text-muted-foreground">CURRENT STREAK</p>
                     <p className="text-[10px] text-muted-foreground mt-1">
                       {formatDateRange(currentStreak.startDate, currentStreak.endDate)}
@@ -705,7 +682,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
           >
             <div className={`
                             grid gap-4 w-full max-w-2xl mx-auto
-                            ${isPortrait ? 'grid-cols-1 max-w-sm' : 'grid-cols-2'}
+                            ${isPortrait ? 'grid-cols-2 max-w-sm' : 'grid-cols-2'}
                         `}>
               <ExpandedStatCard
                 label="Best Month"

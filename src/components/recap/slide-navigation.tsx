@@ -9,6 +9,7 @@ interface SlideNavigationProps {
     onPrevious: () => void;
     onNext: () => void;
     onGoToSlide: (index: number) => void;
+    elapsedTime?: number;
     className?: string;
 }
 
@@ -20,6 +21,7 @@ export function SlideNavigation({
     onGoToSlide,
     duration = 6000,
     isPlaying = true,
+    elapsedTime = 0,
     className = '',
 }: SlideNavigationProps & { duration?: number; isPlaying?: boolean }) {
     const canGoPrevious = currentSlide > 0;
@@ -52,10 +54,10 @@ export function SlideNavigation({
                                 {isActive && isPlaying && (
                                     <motion.div
                                         className="absolute inset-y-0 min-w-[8px] left-0 bg-foreground rounded-full"
-                                        initial={{ width: "0%" }}
+                                        initial={{ width: `${(elapsedTime / duration) * 100}%` }}
                                         animate={{ width: "100%" }}
                                         transition={{
-                                            duration: duration / 1000,
+                                            duration: Math.max(0, duration - elapsedTime) / 1000,
                                             ease: "linear",
                                         }}
                                         // key changes on slide change ensuring animation resets
