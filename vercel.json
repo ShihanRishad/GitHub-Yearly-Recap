@@ -5,7 +5,7 @@
     "framework": "vite",
     "functions": {
         "api/meta.ts": {
-            "includeFiles": "index.html"
+            "includeFiles": "{index.html,dist/index.html}"
         }
     },
     "rewrites": [
