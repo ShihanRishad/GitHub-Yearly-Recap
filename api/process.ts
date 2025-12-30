@@ -5,7 +5,7 @@ import { calculateStreaks, calculatePeakStats, calculateLanguageStats, calculate
 import { generateCommentary } from './lib/gemini.js';
 import { generateOGImage } from './lib/og-image.js';
 import { uploadImage } from './lib/cloudinary.js';
-import { validateConfig } from './lib/config.js';
+import { validateConfig, getValidationErrors } from './lib/config.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -14,7 +14,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Validate configuration
     if (!validateConfig()) {
-        return res.status(500).json({ error: 'Server configuration error' });
+        return res.status(500).json({
+            error: 'Server configuration error',
+            details: getValidationErrors()
+        });
     }
 
     const { username, year } = req.query;

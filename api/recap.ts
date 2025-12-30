@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getRecap, createRecap, updateRecapReady } from './lib/firestore.js';
-import { validateConfig } from './lib/config.js';
+import { validateConfig, getValidationErrors } from './lib/config.js';
 import { generateOGImage } from './lib/og-image.js';
 import { uploadImage } from './lib/cloudinary.js';
 import type { ContributionCalendar } from './lib/types.js';
@@ -31,7 +31,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Validate configuration
     if (!validateConfig()) {
-        return res.status(500).json({ error: 'Server configuration error' });
+        return res.status(500).json({
+            error: 'Server configuration error',
+            details: getValidationErrors()
+        });
     }
 
     // Get params from query (preferred) or body

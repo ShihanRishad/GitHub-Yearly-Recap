@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { GitHubButton } from '@/components/ui/github-button';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -45,6 +46,7 @@ export function AboutPage() {
                         <span className="font-semibold text-lg hidden sm:block">Back to Home</span>
                     </Link>
                     <div className="flex items-center gap-4">
+                        <GitHubButton />
                         <ThemeToggle />
                     </div>
                 </div>

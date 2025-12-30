@@ -63,7 +63,7 @@ export function getConfig(): Config {
 // For backward compatibility
 export const config = getConfig();
 
-export function validateConfig(): boolean {
+export function getValidationErrors(): string[] {
     const c = getConfig();
     const errors: string[] = [];
 
@@ -75,6 +75,12 @@ export function validateConfig(): boolean {
     if (!c.cloudinary.apiSecret) errors.push('CLOUDINARY_API_SECRET is required');
     if (!c.github.token) errors.push('GITHUB_TOKEN is required');
     if (!c.gemini.apiKey) errors.push('GEMINI_API_KEY is required');
+
+    return errors;
+}
+
+export function validateConfig(): boolean {
+    const errors = getValidationErrors();
 
     if (errors.length > 0) {
         console.error('Configuration errors:', errors);

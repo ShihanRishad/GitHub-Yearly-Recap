@@ -12,6 +12,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { GitHubButton } from '@/components/ui/github-button';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
 
@@ -54,7 +55,10 @@ export function HomePage() {
           <div className="flex items-center gap-2">
             <img width={80} src={isDark ? "/recap_logo_horizontal_dark.svg" : "/recap_logo_horizontal.svg"} alt="Recap Logo" />
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <GitHubButton />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 

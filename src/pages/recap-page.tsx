@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { GitHubButton } from '@/components/ui/github-button';
 import { LoadingState } from '@/components/loading-state';
 import { SlideshowContainer } from '@/components/recap/slideshow-container';
 import { SlideNavigation } from '@/components/recap/slide-navigation';
@@ -391,6 +392,7 @@ export function RecapPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <GitHubButton />
             <ThemeToggle />
           </div>
         </div>
