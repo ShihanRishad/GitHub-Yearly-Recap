@@ -21,7 +21,7 @@ export function GitHubButton() {
         <Button
             variant="ghost"
             size="sm"
-            className="gap-2 text-muted-foreground hover:text-foreground hidden sm:flex"
+            className="gap-2 text-muted-foreground hover:text-foreground flex"
             asChild
         >
             <a
