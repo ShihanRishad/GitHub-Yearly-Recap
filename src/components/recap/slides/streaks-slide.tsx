@@ -636,7 +636,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                     <div className="flex justify-center mb-2">
                       <HugeiconsIcon icon={Fire03Icon} className="text-orange-500 w-6 h-6" />
                     </div>
-                    <p className="text-3xl font-black text-orange-50">{longestStreak.count}</p>
+                    <p className="text-3xl font-black text-orange-800 dark:text-orange-50">{longestStreak.count}</p>
                     <p className="text-xs text-muted-foreground">DAY STREAK</p>
                     <p className="text-[10px] text-muted-foreground mt-1">
                       {formatDateRange(longestStreak.startDate, longestStreak.endDate)}
@@ -658,7 +658,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                     <div className="flex justify-center mb-2">
                       <HugeiconsIcon icon={Fire03Icon} className="text-cyan-500 w-6 h-6" />
                     </div>
-                    <p className="text-3xl font-black mb-2 text-cyan-50">{currentStreak.count}</p>
+                    <p className="text-3xl font-black mb-2 text-cyan-800 dark:text-cyan-50">{currentStreak.count}</p>
                     <p className="text-xs text-muted-foreground">CURRENT STREAK</p>
                     <p className="text-[10px] text-muted-foreground mt-1">
                       {formatDateRange(currentStreak.startDate, currentStreak.endDate)}
