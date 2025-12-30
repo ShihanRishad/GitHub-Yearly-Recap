@@ -46,7 +46,7 @@ const SLIDE_DURATIONS: Record<number, number> = {
   0: 5000, // Title
   1: 6000, // Overview
   2: 6000, // Heatmap
-  3: 30000, // Streaks + Heatmap
+  3: 34000, // Streaks + Heatmap
   4: 8000, // PRs/Issues
   5: 6000, // Repos
   6: 4000, // Social
@@ -71,24 +71,16 @@ export function RecapPage() {
   const [feedback, setFeedback] = useState<'paused' | 'resumed' | null>(null);
   const { isDark } = useTheme();
 
-  // Timer refs
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const slideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const startTimeRef = useRef<number | null>(null); // For found_existing overlay
+  const startTimeRef = useRef<number | null>(null);
 
-  // Track timing for pausing/resuming slides
   const slideStartTimeRef = useRef<number>(Date.now());
   const [slideElapsedTime, setSlideElapsedTime] = useState(0);
-
-  // Initial fetch trigger
   const hasFetched = useRef(false);
-
-  // Track previous pause state to detect transitions
   const prevPaused = useRef(isPaused);
 
-  // Feedback Effect
   useEffect(() => {
-    // Skip if no change (though dependencies usually handle this, good for initial ref sync logic)
     if (prevPaused.current === isPaused) return;
 
     if (isPaused) {

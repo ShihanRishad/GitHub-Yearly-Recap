@@ -93,7 +93,8 @@ function ExpandedStatCard({
   subValue,
   color,
   icon,
-  index
+  index,
+  unit
 }: {
   label: string;
   value: string | number;
@@ -102,6 +103,7 @@ function ExpandedStatCard({
   icon?: React.ReactNode;
   index: number;
   total: number;
+  unit?: string;
 }) {
   const colorMap: Record<string, { text: string; accent: string }> = {
     purple: { text: 'text-purple-500 dark:text-purple-400', accent: 'border-grey-500/20 bg-purple-500/5' },
@@ -144,7 +146,7 @@ function ExpandedStatCard({
         {label}
       </span>
       <span className={`text-4xl font-bold mt-1 tracking-tight ${colors.text}`}>
-        {value}
+        {value} <span className={`text-sm text-muted-foreground mt-2 font-medium ${colors.text}`}>{unit}</span>
       </span>
       {subValue && (
         <span className="text-xs text-muted-foreground mt-2 font-medium">
@@ -160,7 +162,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
   const { peakStats, longestStreak, currentStreak, contributionCalendar } = data;
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // --- Dynamic Layout State ---
+  // dynamic layout state
   const [isPortrait, setIsPortrait] = useState(false);
 
   useEffect(() => {
@@ -241,11 +243,11 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
           date >= new Date(currentStreak.startDate) &&
           date <= new Date(currentStreak.endDate);
 
-        // 1. Heatmap Position (CENTERED in viewbox)
+        // heatmap's position
         const origX = heatmapOffsetX + wIdx * (cellSize + gap);
         const origY = heatmapOffsetY + day.weekday * (cellSize + gap);
 
-        // 2. Month Grid (Dynamic Layout)
+        // month grid
         const monthCols = isPortrait ? 3 : 4;
         const mCol = monthIndex % monthCols;
         const mRow = Math.floor(monthIndex / monthCols);
@@ -255,12 +257,8 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         const dayOffset = dom + firstDayOfMonth - 1;
         const calRow = Math.floor(dayOffset / 7);
         const calCol = dayOffset % 7;
-
-        // Block dimensions
         const blockW = 145;
         const blockH = 130;
-
-        // Grid offset to center within viewBox
         const gridOffsetX = isPortrait ? 82 : 10;
         const gridOffsetY = 20;
 
@@ -274,7 +272,6 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         const monthGridX = blockX + itemX + 5;
         const monthGridY = blockY + itemY + labelHeight;
 
-        // Separation offset for 'separate' phase
         const separationOffset = monthIndex * 15;
 
         cells.push({
@@ -298,7 +295,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
       });
     });
 
-    // --- CALCULATE CENTROIDS ---
+    // calculate centers
     const targets: Record<string, { x: number, y: number }> = {};
 
     const calcCenter = (someCells: typeof cells) => {
@@ -634,7 +631,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="absolute bottom-24"
               >
-                <Card className="border-orange-500/50 bg-background/90 min-w-[200px]">
+                <Card className="border-orange-500/50 bg-background/90 py-0 min-w-[200px]">
                   <CardContent className="p-4 text-center">
                     <div className="flex justify-center mb-2">
                       <HugeiconsIcon icon={Fire03Icon} className="text-orange-500 w-6 h-6" />
@@ -656,7 +653,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="absolute bottom-24"
               >
-                <Card className="border-cyan-500/50 bg-background/90 h-fit min-w-[200px]">
+                <Card className="border-cyan-500/50 bg-background/90 py-0 h-fit min-w-[200px]">
                   <CardContent className="p-4 text-center">
                     <div className="flex justify-center mb-2">
                       <HugeiconsIcon icon={Fire03Icon} className="text-cyan-500 w-6 h-6" />
@@ -700,6 +697,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 color="blue"
                 index={1}
                 total={hasCurrentStreak ? 5 : 4}
+                unit="contributions"
               />
               <ExpandedStatCard
                 label="Best Day"
@@ -708,6 +706,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 color="green"
                 index={2}
                 total={hasCurrentStreak ? 5 : 4}
+                unit="contributions"
               />
               <ExpandedStatCard
                 label="Longest Streak"

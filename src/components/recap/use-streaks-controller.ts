@@ -33,7 +33,7 @@ const PHASE_DURATIONS: Record<StreakPhase, number> = {
     activeDay: 3000,
     longestStreak: 2500,
     currentStreak: 2500,
-    expandedCards: 4000,
+    expandedCards: 99999, // this should be visible until slide ends
     clock: 5000,
     final: 999999,
 };
