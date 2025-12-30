@@ -110,7 +110,7 @@ function ExpandedStatCard({
     blue: { text: 'text-blue-500 dark:text-blue-400', accent: 'border-grey-500/20 bg-blue-500/20' },
     green: { text: 'text-green-500 dark:text-green-400', accent: 'border-grey-500/20 bg-green-500/5' },
     orange: { text: 'text-orange-500 dark:text-orange-400', accent: 'border-grey-500/20 bg-orange-500/5' },
-    cyan: { text: 'text-cyan-100 dark:text-cyan-100', accent: 'border-grey-500/20 bg-cyan-500/5' },
+    cyan: { text: 'text-cyan-500 dark:text-cyan-100', accent: 'border-grey-500/20 bg-cyan-500/5' },
   };
   const colors = colorMap[color] || colorMap.green;
 
@@ -592,8 +592,8 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 exit={{ opacity: 0, y: 30, scale: 0.8 }}
                 className="text-center bg-background/80 backdrop-blur-md p-4 rounded-xl border border-purple-500/30"
               >
-                <h3 className="text-sm text-purple-50">Most Active Month</h3>
-                <p className="text-xl font-bold">{peakStats.topMonth.month}</p>
+                <h3 className="text-sm dark:text-purple-100">Most Active Month</h3>
+                <p className="text-xl font-bold text-purple-800 dark:text-purple-200">{peakStats.topMonth.month}</p>
                 <p className="text-sm font-semibold">{peakStats.topMonth.contributions} Contributions</p>
               </motion.div>
             )}
