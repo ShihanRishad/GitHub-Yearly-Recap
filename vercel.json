@@ -5,6 +5,14 @@
     "framework": "vite",
     "rewrites": [
         {
+            "source": "/u/:username/:year",
+            "destination": "/api/meta?username=:username&year=:year"
+        },
+        {
+            "source": "/u/:username",
+            "destination": "/api/meta?username=:username"
+        },
+        {
             "source": "/api/:path*",
             "destination": "/api/:path*"
         }
