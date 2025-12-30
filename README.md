@@ -23,7 +23,7 @@ GitHub Yearly Recap processes your GitHub timeline to create an interactive, per
 - TypeScript
 - Tailwind CSS v4
 - Framer Motion
-- Shadcn UI / Radix UI
+- Shadcn UI
 
 **Backend**
 - Vercel Serverless Functions
