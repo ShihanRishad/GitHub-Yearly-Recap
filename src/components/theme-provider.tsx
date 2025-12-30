@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Theme, ThemeContextType } from '@/types';
+import { storage } from '@/lib/storage';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
@@ -11,7 +12,11 @@ function getSystemTheme(): 'light' | 'dark' {
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setThemeState] = useState<Theme>(() => {
         if (typeof window === 'undefined') return 'system';
-        return (localStorage.getItem('theme') as Theme) || 'system';
+        try {
+            return (storage.getItem('theme') as Theme) || 'system';
+        } catch (e) {
+            return 'system';
+        }
     });
 
     const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
@@ -56,7 +61,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, [theme]);
 
     const setTheme = (newTheme: Theme) => {
-        localStorage.setItem('theme', newTheme);
+        try {
+            storage.setItem('theme', newTheme);
+        } catch (e) {
+            // Silently fail if storage is restricted
+        }
         setThemeState(newTheme);
     };
 
