@@ -16,6 +16,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { GitHubButton } from '@/components/ui/github-button';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { PeerlistBadge } from '@/components/ui/peerlist-badge';
 
 const currentYear = new Date().getFullYear();
 const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
@@ -51,6 +52,7 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden transition-colors duration-500">
+      <PeerlistBadge />
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-sm border-b border-border/40 supports-[backdrop-filter]:bg-background/20 transition-colors duration-500">
         <div className="container mx-auto w-full px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
