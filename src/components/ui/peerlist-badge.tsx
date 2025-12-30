@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/theme-provider';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Cancel01Icon } from '@hugeicons/core-free-icons';
+import { storage } from '@/lib/storage';
 
 export function PeerlistBadge() {
     const { isDark } = useTheme();
@@ -10,7 +11,7 @@ export function PeerlistBadge() {
     const [isHidden, setIsHidden] = useState(true);
 
     useEffect(() => {
-        const stored = localStorage.getItem('peerlist-badge-hidden');
+        const stored = storage.getItem('peerlist-badge-hidden');
         if (stored !== 'true') {
             setIsHidden(false);
             // Small delay to show animation
@@ -25,7 +26,7 @@ export function PeerlistBadge() {
         setIsVisible(false);
         setTimeout(() => {
             setIsHidden(true);
-            localStorage.setItem('peerlist-badge-hidden', 'true');
+            storage.setItem('peerlist-badge-hidden', 'true');
         }, 300);
     };
 
