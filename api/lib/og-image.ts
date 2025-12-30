@@ -119,7 +119,11 @@ export async function generateOGImage(props: OGImageProps): Promise<Buffer> {
                 {
                     type: 'div',
                     props: {
-                        style: { fontSize: '48px', fontWeight: 700, color: '#ffffff' },
+                        style: {
+                            fontSize: (label.toLowerCase().includes('language')) ? '32px' : '48px',
+                            fontWeight: 700,
+                            color: '#ffffff'
+                        },
                         children: value.toString(),
                     },
                 },

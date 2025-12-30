@@ -386,7 +386,7 @@ export function RecapPage() {
               </div>
             </button>
             {username && (
-              <span className="text-muted-foreground text-sm">
+              <span className="text-muted-foreground text-sm truncate max-w-[120px] sm:max-w-none">
                 @{username} • {selectedYear}
               </span>
             )}
