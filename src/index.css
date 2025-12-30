@@ -157,3 +157,8 @@ html {
 header {
   transition: background-color 0.5s;
 }
+
+::selection {
+  background-color: #3f414d81;
+  color: #ffffff;
+}
