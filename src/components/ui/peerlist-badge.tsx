@@ -44,7 +44,7 @@ export function PeerlistBadge() {
                     /* Desktop: Top Center */
                     md:top-6 md:left-1/2 md:-translate-x-1/2 md:bottom-auto
                     /* Mobile: Bottom Center */
-                    bottom-10 left-1/2 -translate-x-1/2 md:translate-x-[-50%] md:left-1/2"
+                    bottom-3 left-1/2 -translate-x-1/2 md:translate-x-[-50%] md:left-1/2"
                 >
                     <div className="relative group">
                         <a
