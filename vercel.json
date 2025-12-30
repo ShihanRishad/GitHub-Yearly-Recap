@@ -3,6 +3,11 @@
     "buildCommand": "npm run build",
     "outputDirectory": "dist",
     "framework": "vite",
+    "functions": {
+        "api/meta.ts": {
+            "includeFiles": "{index.html,dist/index.html}"
+        }
+    },
     "rewrites": [
         {
             "source": "/u/:username/:year",

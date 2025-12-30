@@ -9,7 +9,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const usernameStr = typeof username === 'string' ? username : '';
     const yearNum = parseInt(typeof year === 'string' ? year : '', 10) || new Date().getFullYear();
 
-    const baseUrl = process.env.VITE_APP_URL || `https://${req.headers.host}`;
+    const host = req.headers.host;
+    const proto = req.headers['x-forwarded-proto'] || (host?.includes('localhost') ? 'http' : 'https');
+    const baseUrl = process.env.VITE_APP_URL || `${proto}://${host}`;
     const defaultImage = `${baseUrl}/og-image.png`;
 
     let title = "GitHub Yearly Recap";
@@ -32,9 +34,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        // Read index.html from the root directory
-        const indexPath = path.join(process.cwd(), 'index.html');
-        let html = fs.readFileSync(indexPath, 'utf8');
+        let html = '';
+
+        // Priority 1: Fetch from deployment URL in production to get the correct BUILT index.html
+        // This ensures asset paths (like /assets/index-xxx.js) are correct.
+        if (!host?.includes('localhost')) {
+            console.log(`Production environment detected. Fetching built index.html from: ${baseUrl}/index.html`);
+            try {
+                const response = await fetch(`${baseUrl}/index.html`);
+                if (response.ok) {
+                    html = await response.text();
+                    console.log('Successfully fetched built index.html via network');
+                }
+            } catch (fetchErr) {
+                console.error('Failed to fetch index.html via network, falling back to filesystem:', fetchErr);
+            }
+        }
+
+        // Priority 2: Fallback to filesystem if network fetch failed or in development
+        if (!html) {
+            const possiblePaths = [
+                path.join(process.cwd(), 'dist', 'index.html'),
+                path.join(process.cwd(), 'index.html'),
+                path.join(process.cwd(), '..', 'index.html'),
+            ];
+
+            for (const p of possiblePaths) {
+                try {
+                    if (fs.existsSync(p)) {
+                        html = fs.readFileSync(p, 'utf8');
+                        console.log(`Successfully read index.html from filesystem: ${p}`);
+                        break;
+                    }
+                } catch (err) {
+                    // Ignore error, try next
+                }
+            }
+        }
+
+        if (!html) {
+            console.error('Could not load index.html template from network or filesystem.');
+            return res.status(500).send('Template Load Error');
+        }
 
         // Helper to replace content of a meta tag
         const replaceMeta = (property: string, content: string, isName: boolean = false) => {
