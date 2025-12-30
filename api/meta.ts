@@ -32,9 +32,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        // Read index.html from the root directory
-        const indexPath = path.join(process.cwd(), 'index.html');
-        let html = fs.readFileSync(indexPath, 'utf8');
+        let html = '';
+
+        // Try reading file from possible locations
+        // In local development with 'vercel dev', process.cwd() is the project root.
+        // In Vercel production, index.html is expected in cwd when using includeFiles.
+        const possiblePaths = [
+            path.join(process.cwd(), 'index.html'),      // Bundled by includeFiles
+            path.join(process.cwd(), 'dist', 'index.html'),
+            path.join(process.cwd(), '..', 'index.html'),
+        ]; for (const p of possiblePaths) {
+            try {
+                if (fs.existsSync(p)) {
+                    html = fs.readFileSync(p, 'utf8');
+                    console.log(`Successfully read index.html from ${p}`);
+                    break;
+                }
+            } catch (err) {
+                // Ignore error, try next
+            }
+        }
+
+        if (!html) {
+            console.error('Could not find index.html in any of the expected locations:', possiblePaths);
+            return res.status(500).send('Could not load index.html template');
+        }
 
         // Helper to replace content of a meta tag
         const replaceMeta = (property: string, content: string, isName: boolean = false) => {
