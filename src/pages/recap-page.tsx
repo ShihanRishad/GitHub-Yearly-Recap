@@ -41,12 +41,11 @@ function getRelativeTime(dateString: string): string {
   return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
-// Slide durations in milliseconds
 const SLIDE_DURATIONS: Record<number, number> = {
   0: 5000, // Title
   1: 6000, // Overview
   2: 6000, // Heatmap
-  3: 34000, // Streaks + Heatmap
+  3: 35000, // Streaks + Heatmap
   4: 8000, // PRs/Issues
   5: 6000, // Repos
   6: 4000, // Social
