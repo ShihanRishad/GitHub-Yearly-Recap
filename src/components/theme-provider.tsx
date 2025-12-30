@@ -12,11 +12,7 @@ function getSystemTheme(): 'light' | 'dark' {
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setThemeState] = useState<Theme>(() => {
         if (typeof window === 'undefined') return 'system';
-        try {
-            return (storage.getItem('theme') as Theme) || 'system';
-        } catch (e) {
-            return 'system';
-        }
+        return (storage.getItem('theme') as Theme) || 'system';
     });
 
     const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
@@ -61,11 +57,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, [theme]);
 
     const setTheme = (newTheme: Theme) => {
-        try {
-            storage.setItem('theme', newTheme);
-        } catch (e) {
-            // Silently fail if storage is restricted
-        }
+        storage.setItem('theme', newTheme);
         setThemeState(newTheme);
     };
 

@@ -1,9 +1,11 @@
 /**
  * A safe wrapper for localStorage that falls back to an in-memory store
- * if localStorage is unavailable (e.g., private browsing, browser settings).
+ * if localStorage is unavailable (e.g., private browsing, browser settings, or full disk).
  */
 
 const memoryStorage: Record<string, string> = {};
+
+const IS_DEV = import.meta.env.DEV;
 
 function isLocalStorageAvailable(): boolean {
     if (typeof window === 'undefined') return false;
@@ -13,6 +15,9 @@ function isLocalStorageAvailable(): boolean {
         window.localStorage.removeItem(testKey);
         return true;
     } catch (e) {
+        if (IS_DEV) {
+            console.warn('[Storage] localStorage is not available, falling back to memory storage:', e);
+        }
         return false;
     }
 }
@@ -26,7 +31,9 @@ export const storage = {
                 return window.localStorage.getItem(key);
             }
         } catch (e) {
-            // Fallback to memory
+            if (IS_DEV) {
+                console.error(`[Storage] Error getting item "${key}":`, e);
+            }
         }
         return memoryStorage[key] || null;
     },
@@ -38,7 +45,9 @@ export const storage = {
                 return;
             }
         } catch (e) {
-            // Fallback to memory
+            if (IS_DEV) {
+                console.error(`[Storage] Error setting item "${key}":`, e);
+            }
         }
         memoryStorage[key] = value;
     },
@@ -50,7 +59,9 @@ export const storage = {
                 return;
             }
         } catch (e) {
-            // Fallback to memory
+            if (IS_DEV) {
+                console.error(`[Storage] Error removing item "${key}":`, e);
+            }
         }
         delete memoryStorage[key];
     },
@@ -62,7 +73,9 @@ export const storage = {
                 return;
             }
         } catch (e) {
-            // Fallback to memory
+            if (IS_DEV) {
+                console.error('[Storage] Error clearing storage:', e);
+            }
         }
         for (const key in memoryStorage) {
             delete memoryStorage[key];
