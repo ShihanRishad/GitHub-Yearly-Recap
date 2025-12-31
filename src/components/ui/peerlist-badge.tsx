@@ -20,14 +20,12 @@ export function PeerlistBadge() {
         }
     }, []);
 
-    const handleHide = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
+    const handleHide = () => {
         setIsVisible(false);
         setTimeout(() => {
             setIsHidden(true);
             storage.setItem('peerlist-badge-hidden', 'true');
-        }, 300);
+        }, 500);
     };
 
     if (isHidden) return null;
@@ -36,15 +34,24 @@ export function PeerlistBadge() {
         <AnimatePresence>
             {isVisible && (
                 <motion.div
+                    drag="y"
+                    dragConstraints={{ top: 0, bottom: 0 }}
+                    dragElastic={{ top: 0.1, bottom: 0.8 }}
+                    onDragEnd={(_, info) => {
+                        if (info.offset.y > 80) {
+                            handleHide();
+                        }
+                    }}
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 100 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="fixed z-[100] transition-all duration-300
                     /* Desktop: Top Center */
                     md:top-6 md:left-1/2 md:-translate-x-1/2 md:bottom-auto
                     /* Mobile: Bottom Center */
-                    bottom-3 left-1/2 -translate-x-1/2 md:translate-x-[-50%] md:left-1/2"
+                    bottom-3 left-1/2 -translate-x-1/2 md:translate-x-[-50%] md:left-1/2
+                    cursor-grab active:cursor-grabbing touch-none"
                 >
                     <div className="relative group">
                         <a
@@ -52,6 +59,8 @@ export function PeerlistBadge() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="block transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                            onClick={() => {
+                            }}
                         >
                             <img
                                 src={isDark ? "/launch-badge-peerlist-upvote.svg" : "/launch-badge-peerlist-upvote-light.svg"}
@@ -64,9 +73,13 @@ export function PeerlistBadge() {
                         </a>
 
                         <button
-                            onClick={handleHide}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleHide();
+                            }}
                             className="absolute -top-2 -right-2 bg-background border border-border rounded-full p-1 
-                            shadow-md hover:bg-muted transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                            shadow-md hover:bg-muted transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 z-[10]"
                             aria-label="Hide Peerlist Badge"
                         >
                             <HugeiconsIcon icon={Cancel01Icon} size={14} strokeWidth={2.5} />
