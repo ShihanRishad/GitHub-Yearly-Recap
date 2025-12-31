@@ -105,8 +105,20 @@ function ExpandedStatCard({
   total: number;
   unit?: string;
 }) {
+
+  const [isPortrait, setIsPortrait] = useState(false);
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsPortrait(window.innerHeight > window.innerWidth);
+    };
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    return () => window.removeEventListener('resize', checkOrientation);
+  }, []);
+
   const colorMap: Record<string, { text: string; accent: string }> = {
-    purple: { text: 'text-purple-500 dark:text-purple-400', accent: 'border-grey-500/20 bg-purple-500/5' },
+    purple: { text: `text-purple-500 dark:text-purple-400 ${isPortrait ? 'text-[1.5rem]' : ''}`, accent: 'border-grey-500/20 bg-purple-500/5' },
     blue: { text: 'text-blue-500 dark:text-blue-400', accent: 'border-grey-500/20 bg-blue-500/20' },
     green: { text: 'text-green-500 dark:text-green-400', accent: 'border-grey-500/20 bg-green-500/5' },
     orange: { text: 'text-orange-500 dark:text-orange-400', accent: 'border-grey-500/20 bg-orange-500/5' },
@@ -673,7 +685,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         {/* 4. Expanded Cards Showcase */}
         {phase === 'expandedCards' && (
           <motion.div
-            className="absolute inset-0 flex items-center justify-center bg-background/95 backdrop-blur-md z-40 p-6"
+            className="absolute inset-0 flex items-center pb-20 justify-center overflow-auto bg-background/95 backdrop-blur-md z-40 p-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
