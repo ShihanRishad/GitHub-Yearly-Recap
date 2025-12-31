@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import { GitHubButton } from '@/components/ui/github-button';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import { PeerlistBadge } from '@/components/ui/peerlist-badge';
+import { ErrorToast } from '@/components/ui/error-toast';
 
 const currentYear = new Date().getFullYear();
 const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
@@ -28,10 +29,24 @@ export function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { isDark } = useTheme();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showErrorToast, setShowErrorToast] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     document.title = 'GitHub Yearly Recap';
-  }, []);
+
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'user_not_found') {
+      setErrorMessage('GitHub username not found. Please check and try again.');
+      setShowErrorToast(true);
+
+      // Clean up the URL
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('error');
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,6 +193,12 @@ export function HomePage() {
 
         </motion.div>
       </main>
+
+      <ErrorToast
+        message={errorMessage}
+        isVisible={showErrorToast}
+        onClose={() => setShowErrorToast(false)}
+      />
     </div>
   );
 }

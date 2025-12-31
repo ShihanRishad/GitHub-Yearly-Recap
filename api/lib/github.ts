@@ -160,6 +160,10 @@ async function executeGraphQL(query: string, variables: Record<string, unknown>)
     const result = await response.json();
 
     if (result.errors) {
+        const isNotFound = result.errors.some((err: any) => err.type === 'NOT_FOUND' || err.message?.toLowerCase().includes('could not resolve to a user'));
+        if (isNotFound) {
+            return { user: null }; // Return null user instead of throwing
+        }
         throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
     }
 

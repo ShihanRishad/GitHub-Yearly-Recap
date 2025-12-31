@@ -189,7 +189,16 @@ export function RecapPage() {
             setStatus('ready');
           } else if (statusData.status === 'error') {
             clearInterval(pollInterval);
-            setError(statusData.errorMessage || 'Processing failed');
+            const errorMessage = statusData.errorMessage || 'Processing failed';
+
+            if (errorMessage.toLowerCase().includes('user not found') ||
+              errorMessage.toLowerCase().includes('could not resolve to a user') ||
+              errorMessage.includes('NOT_FOUND')) {
+              navigate('/?error=user_not_found');
+              return;
+            }
+
+            setError(errorMessage);
             setStatus('error');
           }
         } catch (e) {
@@ -202,7 +211,16 @@ export function RecapPage() {
       };
     } catch (err) {
       console.error('Fetch error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate recap');
+      const msg = err instanceof Error ? err.message : 'Failed to generate recap';
+
+      if (msg.toLowerCase().includes('user not found') ||
+        msg.toLowerCase().includes('could not resolve to a user') ||
+        msg.includes('NOT_FOUND')) {
+        navigate('/?error=user_not_found');
+        return;
+      }
+
+      setError(msg);
       setStatus('error');
     }
   }, [username, selectedYear, isDemo]);
