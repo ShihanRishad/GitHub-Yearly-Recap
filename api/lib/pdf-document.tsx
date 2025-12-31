@@ -128,7 +128,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9fafb',
         borderRadius: 12,
         marginBottom: 20,
-        borderLeftWidth: 4,
+        borderWidth: 1,
+        borderColor: colors.border,
     },
     streakValue: {
         fontSize: 48,
