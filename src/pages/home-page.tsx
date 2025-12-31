@@ -25,7 +25,7 @@ const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
 export function HomePage() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
-  const [year, setYear] = useState(currentYear.toString());
+  const [year, setYear] = useState("2025");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { isDark } = useTheme();
