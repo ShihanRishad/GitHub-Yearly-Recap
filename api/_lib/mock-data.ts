@@ -1,45 +1,45 @@
 // Mock data generator for API demo mode
 // Mirrors the frontend mock-data.ts logic
 
-interface ContributionDay {
+export interface ContributionDay {
     date: string;
     contributionCount: number;
     weekday: number;
     color: string;
 }
 
-interface ContributionWeek {
+export interface ContributionWeek {
     contributionDays: ContributionDay[];
     firstDay: string;
 }
 
-interface ContributionCalendar {
+export interface ContributionCalendar {
     totalContributions: number;
     weeks: ContributionWeek[];
     months: { name: string; firstDay: string; totalWeeks: number }[];
 }
 
-interface StreakInfo {
+export interface StreakInfo {
     count: number;
     startDate: string | null;
     endDate: string | null;
 }
 
-interface PeakStats {
+export interface PeakStats {
     topDay: { date: string; contributions: number; dayOfWeek: string };
     topWeek: { weekStart: string; weekEnd: string; contributions: number };
     topMonth: { month: string; year: number; contributions: number };
     topHour: { hour: number; commits: number } | null;
 }
 
-interface LanguageStats {
+export interface LanguageStats {
     name: string;
     color: string;
     percentage: number;
     size: number;
 }
 
-interface NewRepo {
+export interface NewRepo {
     name: string;
     description: string | null;
     url: string;
@@ -50,7 +50,7 @@ interface NewRepo {
     isPrivate: boolean;
 }
 
-interface CommentaryNote {
+export interface CommentaryNote {
     id: string;
     category: 'streak' | 'productivity' | 'languages' | 'social' | 'repos' | 'general';
     title: string;

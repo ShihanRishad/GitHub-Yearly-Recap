@@ -1,6 +1,6 @@
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
-import type { ContributionCalendar, ContributionWeek, ContributionDay } from './types';
+import type { ContributionCalendar, ContributionWeek, ContributionDay } from './types.js';
 import fs from 'node:fs';
 import path from 'node:path';
 

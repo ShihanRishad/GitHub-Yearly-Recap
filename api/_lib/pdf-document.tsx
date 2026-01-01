@@ -16,7 +16,8 @@ import {
   Font,
   Image,
 } from '@react-pdf/renderer';
-import type { RecapData } from './mock-data.js';
+import type { RecapData, NewRepo, CommentaryNote, LanguageStats } from './mock-data.js';
+import type { ContributionWeek, ContributionDay } from './types.js';
 
 // Light theme colors
 const colors = {
@@ -477,9 +478,9 @@ function HeatmapPage({ data }: PDFDocumentProps) {
       </Text>
 
       <View style={styles.heatmapContainer}>
-        {weeks.map((week, weekIndex) => (
+        {weeks.map((week: ContributionWeek, weekIndex: number) => (
           <View key={weekIndex} style={styles.heatmapWeek}>
-            {week.contributionDays.map((day, dayIndex) => (
+            {week.contributionDays.map((day: ContributionDay, dayIndex: number) => (
               <View
                 key={dayIndex}
                 style={[
@@ -706,7 +707,7 @@ function LanguagesPage({ data }: PDFDocumentProps) {
       {languages.length > 0 && (
         <>
           <View style={styles.languageBar}>
-            {languages.map((lang, index) => (
+            {languages.map((lang: LanguageStats, index: number) => (
               <View
                 key={index}
                 style={{
@@ -718,7 +719,7 @@ function LanguagesPage({ data }: PDFDocumentProps) {
             ))}
           </View>
 
-          {languages.map((lang, index) => (
+          {languages.map((lang: LanguageStats, index: number) => (
             <View key={index} style={styles.languageItem}>
               <View style={[styles.languageDot, { backgroundColor: lang.color }]} />
               <Text style={styles.languageName}>{lang.name}</Text>
@@ -758,7 +759,7 @@ function NotesPage({ data }: PDFDocumentProps) {
       <Text style={styles.pageSubtitle}>Some fun insights about your {data.year} journey</Text>
 
       <View style={styles.statsGrid}>
-        {notes.map((note, index) => {
+        {notes.map((note: CommentaryNote, index: number) => {
           const { bg, border } = getNoteColors(note.category);
           return (
             <View key={index} style={[styles.noteCard, { backgroundColor: bg, borderColor: border }]}>
