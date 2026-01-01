@@ -617,7 +617,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
                 exit={{ opacity: 0, y: 60, scale: 0.8 }}
                 className="text-center bg-background/80 backdrop-blur-md p-4 rounded-xl border border-green-500/30"
               >
-                <h3 className="text-xl font-bold text-green-50">Most Active Week</h3>
+                <h3 className="text-xl font-bold text-green-800 dark:text-green-50">Most Active Week</h3>
                 <p className="text-sm font-semibold">{formatDateRange(peakStats.topWeek.weekStart, peakStats.topWeek.weekEnd)}</p>
                 <p className="text-2xl font-bold">{peakStats.topWeek.contributions}</p>
               </motion.div>

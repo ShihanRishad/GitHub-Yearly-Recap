@@ -30,7 +30,7 @@ export function SlideNavigation({
     return (
         <>
             {/* Progress dots */}
-            <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-30 p-3 rounded-full bg-background/40 backdrop-blur-md border border-white/10 ${className}`}>
+            <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-30 p-3 rounded-full dark:bg-background/40 bg-background/70 backdrop-blur-md border dark:border-white/10 border-black/10 ${className}`}>
                 {Array.from({ length: totalSlides }).map((_, index) => {
                     const isActive = index === currentSlide;
                     return (

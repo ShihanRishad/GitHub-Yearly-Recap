@@ -3,674 +3,733 @@
 
 import React from 'react';
 import {
-    Document,
-    Page,
-    Text,
-    View,
-    StyleSheet,
-    Link,
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Link,
+  Svg,
+  Path,
+  G,
+  Circle,
 } from '@react-pdf/renderer';
 import type { RecapData } from './mock-data.js';
 
 // Light theme colors
 const colors = {
-    background: '#ffffff',
-    primary: '#1f2937',
-    muted: '#6b7280',
-    border: '#e5e7eb',
-    accent: {
-        green: '#22c55e',
-        orange: '#f97316',
-        blue: '#3b82f6',
-        purple: '#a855f7',
-        pink: '#ec4899',
-    },
-    heatmap: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
+  primary: '#1f2937',
+  muted: '#6b7280',
+  border: '#e5e7eb',
+  background: {
+    white: "#ffffff",
+    orange: "#fff7f2",
+    yellow: "#fffcecff",
+    green: "#f3fcf2ff",
+    blue: "#f6f5ff",
+    purple: '#f7eeffff',
+    pink: '#e6d7deff',
+  },
+  accent: {
+    green: '#22c55e',
+    orange: '#f97316',
+    blue: '#3b82f6',
+    purple: '#a855f7',
+    pink: '#ec4899',
+  },
+  heatmap: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
 };
 
 // Styles
 const styles = StyleSheet.create({
-    page: {
-        padding: 40,
-        backgroundColor: colors.background,
-        fontFamily: 'Helvetica',
-    },
-    pageTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: colors.primary,
-        marginBottom: 8,
-    },
-    pageSubtitle: {
-        fontSize: 14,
-        color: colors.muted,
-        marginBottom: 30,
-    },
-    // Title page
-    titlePage: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    titleYear: {
-        fontSize: 72,
-        fontWeight: 'bold',
-        color: colors.accent.green,
-        marginBottom: 16,
-    },
-    titleName: {
-        fontSize: 36,
-        fontWeight: 'bold',
-        color: colors.primary,
-        marginBottom: 8,
-    },
-    titleUsername: {
-        fontSize: 18,
-        color: colors.muted,
-        marginBottom: 24,
-    },
-    titleLabel: {
-        fontSize: 16,
-        color: colors.muted,
-    },
-    // Stats
-    statsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 16,
-    },
-    statCard: {
-        width: '30%',
-        padding: 16,
-        backgroundColor: '#f9fafb',
-        borderRadius: 8,
-        marginBottom: 16,
-    },
-    statLabel: {
-        fontSize: 11,
-        color: colors.muted,
-        marginBottom: 4,
-    },
-    statValue: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: colors.primary,
-    },
-    statSuffix: {
-        fontSize: 14,
-        color: colors.muted,
-    },
-    statDescription: {
-        fontSize: 10,
-        color: colors.muted,
-        marginTop: 4,
-    },
-    // Heatmap
-    heatmapContainer: {
-        flexDirection: 'row',
-        gap: 2,
-        justifyContent: 'center',
-        marginTop: 20,
-        marginBottom: 30,
-    },
-    heatmapWeek: {
-        flexDirection: 'column',
-        gap: 2,
-    },
-    heatmapCell: {
-        width: 8,
-        height: 8,
-        borderRadius: 2,
-    },
-    // Streaks
-    streakCard: {
-        padding: 24,
-        backgroundColor: '#f9fafb',
-        borderRadius: 12,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: colors.border,
-    },
-    streakValue: {
-        fontSize: 48,
-        fontWeight: 'bold',
-    },
-    streakLabel: {
-        fontSize: 14,
-        color: colors.muted,
-        marginTop: 4,
-    },
-    streakDates: {
-        fontSize: 11,
-        color: colors.muted,
-        marginTop: 8,
-    },
-    // Repos list
-    repoItem: {
-        padding: 16,
-        backgroundColor: '#f9fafb',
-        borderRadius: 8,
-        marginBottom: 12,
-    },
-    repoName: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: colors.primary,
-    },
-    repoDescription: {
-        fontSize: 11,
-        color: colors.muted,
-        marginTop: 4,
-    },
-    repoStats: {
-        flexDirection: 'row',
-        gap: 16,
-        marginTop: 8,
-    },
-    repoStat: {
-        fontSize: 10,
-        color: colors.muted,
-    },
-    // Languages
-    languageBar: {
-        height: 12,
-        borderRadius: 6,
-        flexDirection: 'row',
-        overflow: 'hidden',
-        marginBottom: 20,
-    },
-    languageItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    languageDot: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        marginRight: 8,
-    },
-    languageName: {
-        fontSize: 12,
-        color: colors.primary,
-        flex: 1,
-    },
-    languagePercent: {
-        fontSize: 12,
-        color: colors.muted,
-    },
-    // Notes
-    noteCard: {
-        padding: 16,
-        backgroundColor: '#f9fafb',
-        borderRadius: 8,
-        marginBottom: 12,
-    },
-    noteEmoji: {
-        fontSize: 20,
-        marginBottom: 8,
-    },
-    noteTitle: {
-        fontSize: 13,
-        fontWeight: 'bold',
-        color: colors.primary,
-        marginBottom: 4,
-    },
-    noteContent: {
-        fontSize: 11,
-        color: colors.muted,
-        lineHeight: 1.4,
-    },
-    // Footer
-    footer: {
-        marginTop: 'auto',
-        paddingTop: 20,
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
-        alignItems: 'center',
-    },
-    footerText: {
-        fontSize: 10,
-        color: colors.muted,
-    },
-    // Peak stats row
-    peakStatsRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginTop: 20,
-        paddingTop: 20,
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
-    },
-    peakStat: {
-        alignItems: 'center',
-    },
-    peakStatValue: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: colors.primary,
-    },
-    peakStatLabel: {
-        fontSize: 10,
-        color: colors.muted,
-        marginTop: 4,
-        textAlign: 'center',
-    },
-    // Summary page
-    summaryStats: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: 12,
-        marginTop: 40,
-    },
-    summaryBadge: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-    },
-    summaryBadgeText: {
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    thankYou: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: colors.primary,
-        textAlign: 'center',
-        marginTop: 60,
-    },
+  page: {
+    padding: 40,
+    paddingTop: 65,
+    backgroundColor: colors.background.white,
+    fontFamily: 'Helvetica',
+  },
+  pageTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  pageSubtitle: {
+    fontSize: 16,
+    color: colors.muted,
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  // Title page
+  titlePage: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleYear: {
+    marginBottom: 16,
+  },
+  titleName: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 8,
+  },
+  titleUsername: {
+    fontSize: 18,
+    color: colors.muted,
+    marginBottom: 24,
+  },
+  titleLabel: {
+    fontSize: 16,
+    color: colors.muted,
+  },
+  // Stats
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 16,
+  },
+  statCard: {
+    width: '45%',
+    padding: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    backgroundColor: '#f9fafb',
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  statSuffix: {
+    fontSize: 14,
+    color: colors.muted,
+  },
+  statDescription: {
+    fontSize: 10,
+    color: colors.muted,
+    marginTop: 4,
+  },
+  // Heatmap
+  heatmapContainer: {
+    flexDirection: 'row',
+    gap: 2,
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  heatmapWeek: {
+    flexDirection: 'column',
+    gap: 2,
+  },
+  heatmapCell: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
+  },
+  // Streaks
+  streakCard: {
+    padding: 24,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  streakValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  streakLabel: {
+    fontSize: 14,
+    color: colors.muted,
+    marginBottom: 8,
+  },
+  streakDates: {
+    fontSize: 11,
+    color: colors.muted,
+    marginTop: 8,
+  },
+  // Repos list
+  repoItem: {
+    padding: 16,
+    backgroundColor: '#728ca52f',
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  repoName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  repoDescription: {
+    fontSize: 11,
+    color: colors.muted,
+    marginTop: 4,
+  },
+  repoStats: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 8,
+  },
+  repoStat: {
+    fontSize: 10,
+    color: colors.muted,
+  },
+  // Languages
+  languageBar: {
+    height: 12,
+    borderRadius: 6,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    marginBottom: 20,
+  },
+  languageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    fontSize: 24,
+
+  },
+  languageDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  languageName: {
+    fontSize: 12,
+    color: colors.primary,
+    flex: 1,
+  },
+  languagePercent: {
+    fontSize: 12,
+    color: colors.muted,
+  },
+  // Notes
+  noteCard: {
+    width: '45%',
+    padding: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    backgroundColor: '#f9fafb',
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  noteEmoji: {
+    fontSize: 20,
+    marginBottom: 8,
+  },
+  noteTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  noteContent: {
+    fontSize: 11,
+    color: colors.muted,
+    lineHeight: 1.4,
+  },
+  // Footer
+  extraText: {
+    textAlign: "center",
+
+  },
+
+  footer: {
+    marginTop: 'auto',
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 10,
+    color: colors.muted,
+  },
+  // Peak stats row
+  peakStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  peakStat: {
+    alignItems: 'center',
+  },
+  peakStatValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  peakStatLabel: {
+    fontSize: 10,
+    color: colors.muted,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  // Summary page
+  summaryStats: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 40,
+  },
+  summaryBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  summaryBadgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  thankYou: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primary,
+    textAlign: 'center',
+    marginTop: 60,
+  },
 });
 
 // Helper function to get heatmap color
 function getHeatmapColor(count: number): string {
-    if (count === 0) return colors.heatmap[0];
-    if (count <= 3) return colors.heatmap[1];
-    if (count <= 6) return colors.heatmap[2];
-    if (count <= 9) return colors.heatmap[3];
-    return colors.heatmap[4];
+  if (count === 0) return colors.heatmap[0];
+  if (count <= 3) return colors.heatmap[1];
+  if (count <= 6) return colors.heatmap[2];
+  if (count <= 9) return colors.heatmap[3];
+  return colors.heatmap[4];
 }
 
 // Helper to format date
 function formatDate(dateStr: string | null): string {
-    if (!dateStr) return 'N/A';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  if (!dateStr) return 'N/A';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 // Component Props
 interface PDFDocumentProps {
-    data: RecapData;
+  data: RecapData;
+}
+
+function StarIcon() {
+  return (
+    <Svg width="96" height="96" viewBox="0 0 24 24"><Path fill="black" d="M11.334 3.549c.21-.645 1.122-.645 1.332 0L14.2 8.272a.7.7 0 0 0 .666.483h4.966c.678 0 .96.868.411 1.267l-4.017 2.918a.7.7 0 0 0-.254.783l1.534 4.723c.21.645-.529 1.18-1.077.782l-4.017-2.918a.7.7 0 0 0-.823 0L7.57 19.228c-.548.399-1.287-.137-1.077-.782l1.534-4.723a.7.7 0 0 0-.254-.783l-4.017-2.918c-.549-.399-.267-1.267.411-1.267h4.966a.7.7 0 0 0 .666-.483z" /></Svg>
+  );
+}
+
+function ForkIcon() {
+  return (
+    <Svg width="96" height="96" viewBox="0 0 24 24"><G fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><Circle cx="12" cy="18" r="3" /><Circle cx="6" cy="6" r="3" /><Circle cx="18" cy="6" r="3" /><Path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9m6 3v3" /></G></Svg>
+  )
 }
 
 // Page Components
 function TitlePage({ data }: PDFDocumentProps) {
-    return (
-        <Page size="A4" style={styles.page}>
-            <View style={styles.titlePage}>
-                <Text style={styles.titleYear}>{data.year}</Text>
-                <Text style={styles.titleName}>{data.displayName}</Text>
-                <Text style={styles.titleUsername}>@{data.username}</Text>
-                <Text style={styles.titleLabel}>GitHub Yearly Recap</Text>
-            </View>
-            <View style={styles.footer}>
-                <Text style={styles.footerText}>github-yearly-recap.vercel.app</Text>
-            </View>
-        </Page>
-    );
+  return (
+    <Page size="A4" style={styles.page}>
+      <View style={styles.titlePage}>
+        <Svg style={styles.titleYear} width="119" height="107" viewBox="0 0 119 107" fill="none">
+          <Path fill-rule="evenodd" clip-rule="evenodd" d="M20.3934 0C9.12604 0 0 9.15626 0 20.4609C0 29.5149 5.83761 37.1621 13.944 39.8732C14.9636 40.0522 15.346 39.4384 15.346 38.9013C15.346 38.4154 15.3205 36.8041 15.3205 35.0905C10.1967 36.0368 8.87112 33.8372 8.46325 32.6863C8.23383 32.0981 7.23965 30.2822 6.37293 29.7962C5.65916 29.4126 4.63949 28.4662 6.34744 28.4407C7.95342 28.4151 9.10055 29.9241 9.48292 30.5379C11.3183 33.6326 14.2499 32.763 15.4225 32.2259C15.6009 30.896 16.1363 30.0008 16.7226 29.4893C12.185 28.9778 7.44358 27.213 7.44358 19.3867C7.44358 17.1616 8.23383 15.3201 9.53391 13.8878C9.32997 13.3763 8.6162 11.2791 9.73784 8.4657C9.73784 8.4657 11.4458 7.9286 15.346 10.5629C16.9775 10.1026 18.7109 9.87239 20.4444 9.87239C22.1778 9.87239 23.9112 10.1026 25.5427 10.5629C29.4429 7.90303 31.1509 8.4657 31.1509 8.4657C32.2725 11.2791 31.5588 13.3763 31.3548 13.8878C32.6549 15.3201 33.4451 17.136 33.4451 19.3867C33.4451 27.2386 28.6782 28.9778 24.1407 29.4893C24.8799 30.1287 25.5172 31.3563 25.5172 33.2746C25.5172 36.0112 25.4917 38.2108 25.4917 38.9013C25.4917 39.4384 25.8741 40.0778 26.8938 39.8732C34.9492 37.1621 40.7868 29.4893 40.7868 20.4609C40.7868 9.15626 31.6607 0 20.3934 0Z" fill="black" />
+          <Path d="M64.6502 32.7081C62.5 32.7081 61.1283 31.2944 60.5351 28.467L59.6825 24.3374C59.4106 22.9981 59.1016 21.9812 58.7556 21.2867C58.4343 20.5923 57.9771 20.121 57.3839 19.873C56.8155 19.625 56.0246 19.501 55.0113 19.501C54.6653 19.501 54.3934 19.6002 54.1957 19.7986C53.998 19.9722 53.8991 20.1954 53.8991 20.4682V29.7691C53.8991 30.2899 53.998 30.6496 54.1957 30.848C54.3934 31.0216 54.8383 31.1704 55.5303 31.2944L56.902 31.5176C57.1739 31.5672 57.3098 31.7037 57.3098 31.9269C57.3098 32.2245 57.1244 32.3733 56.7537 32.3733H49.2279C48.8572 32.3733 48.6718 32.2369 48.6718 31.9641C48.6718 31.7409 48.8325 31.592 49.1538 31.5176L50.0065 31.3688C50.5255 31.2696 50.8591 31.1332 51.0074 30.9596C51.1804 30.786 51.2669 30.4387 51.2669 29.9179V8.04232C51.2669 7.52147 51.1804 7.17424 51.0074 7.00062C50.8591 6.82701 50.5255 6.6906 50.0065 6.59139L49.1538 6.44257C48.8325 6.36817 48.6718 6.21935 48.6718 5.99613C48.6718 5.72331 48.8572 5.5869 49.2279 5.5869H56.7537C58.2119 5.5869 59.5094 5.87212 60.6463 6.44257C61.7832 7.01303 62.673 7.8067 63.3156 8.82359C63.9582 9.81568 64.2795 10.969 64.2795 12.2835C64.2795 13.846 63.8099 15.2598 62.8707 16.5247C61.9315 17.7648 60.7452 18.6453 59.3117 19.1661C59.1387 19.2157 59.0399 19.3025 59.0151 19.4265C59.0151 19.5258 59.1016 19.6126 59.2747 19.687C60.0655 20.059 60.6834 20.5798 61.1283 21.2495C61.5979 21.9192 61.9562 22.8121 62.2034 23.9282L63.019 27.7229C63.2909 29.0126 63.6122 29.9303 63.9829 30.4759C64.3536 31.0216 64.8232 31.2944 65.3917 31.2944C65.5894 31.2944 65.7624 31.2696 65.9107 31.22C66.0837 31.1456 66.2938 31.0216 66.5409 30.848C66.7386 30.724 66.924 30.6992 67.097 30.7736C67.27 30.8232 67.3565 30.9472 67.3565 31.1456C67.3565 31.5672 67.0846 31.9393 66.5409 32.2617C65.9972 32.5593 65.3669 32.7081 64.6502 32.7081ZM56.383 18.5709C58.0636 18.5709 59.3364 18.0128 60.2015 16.8967C61.0665 15.7558 61.499 14.2429 61.499 12.3579C61.499 10.5225 60.9924 9.09641 59.979 8.07952C58.9904 7.03783 57.6187 6.51698 55.864 6.51698C54.5541 6.51698 53.8991 7.01303 53.8991 8.00512V16.5247C53.8991 17.8888 54.7271 18.5709 56.383 18.5709Z" fill="black" />
+          <Path d="M72.4459 32.7081C71.2596 32.7081 70.1968 32.3113 69.2576 31.5176C68.3185 30.724 67.5647 29.6079 66.9962 28.1693C66.4525 26.706 66.1806 25.0194 66.1806 23.1097C66.1806 21.1503 66.4648 19.4265 67.0333 17.9384C67.6017 16.4503 68.3803 15.2846 69.3689 14.4413C70.3575 13.598 71.4573 13.1764 72.6683 13.1764C74.1265 13.1764 75.3005 13.784 76.1903 14.9993C77.1047 16.1899 77.5619 18.1368 77.5619 20.8403C77.5619 21.6587 77.253 22.068 76.6351 22.068H69.5913C69.097 22.068 68.8498 22.3532 68.8498 22.9237C68.8498 25.5527 69.2329 27.5245 69.9991 28.839C70.7653 30.1535 71.7415 30.8108 72.9278 30.8108C73.867 30.8108 74.6332 30.4759 75.2264 29.8063C75.8195 29.1366 76.3015 28.0081 76.6722 26.4208C76.7463 26.148 76.907 26.0115 77.1541 26.0115C77.4507 26.0115 77.5619 26.2596 77.4878 26.7556C77.0924 28.963 76.4621 30.5131 75.5971 31.406C74.732 32.2741 73.6817 32.7081 72.4459 32.7081ZM69.4801 21.1379H73.2244C74.4108 21.1379 75.0039 20.5178 75.0039 19.2777C75.0039 17.6656 74.8062 16.4007 74.4108 15.483C74.0153 14.5653 73.4221 14.1065 72.6313 14.1065C71.6674 14.1065 70.8518 14.6645 70.1845 15.7806C69.5419 16.8967 69.1217 18.4841 68.924 20.5426C68.8746 20.9395 69.0599 21.1379 69.4801 21.1379Z" fill="black" />
+          <Path d="M84.4378 32.7081C83.3503 32.7081 82.3617 32.3485 81.472 31.6292C80.6069 30.8852 79.9149 29.8311 79.3959 28.467C78.8769 27.1028 78.6174 25.4783 78.6174 23.5933C78.6174 21.4851 78.9263 19.6498 79.5442 18.0872C80.1868 16.5247 81.0518 15.3218 82.1393 14.4785C83.2267 13.6104 84.4378 13.1764 85.7724 13.1764C86.9093 13.1764 87.799 13.3996 88.4416 13.846C88.6888 14.0197 88.8124 14.2925 88.8124 14.6645L88.8865 19.2033C88.8865 19.5754 88.7382 19.7614 88.4416 19.7614C88.1698 19.7614 87.9968 19.6002 87.9226 19.2777C87.5766 17.9136 87.243 16.8595 86.9217 16.1154C86.6004 15.3714 86.2667 14.8629 85.9207 14.5901C85.5747 14.2925 85.1916 14.1437 84.7714 14.1437C84.2771 14.1437 83.7581 14.4289 83.2144 14.9993C82.6954 15.5698 82.2505 16.4999 81.8798 17.7896C81.5337 19.0545 81.3607 20.7287 81.3607 22.812C81.3607 25.4659 81.6944 27.4625 82.3617 28.8018C83.0537 30.1411 83.9435 30.8108 85.0309 30.8108C85.896 30.8108 86.6127 30.4511 87.1812 29.7319C87.7743 29.0126 88.281 27.7105 88.7011 25.8255C88.7753 25.5527 88.9236 25.4163 89.146 25.4163C89.4426 25.4163 89.5538 25.6643 89.4797 26.1604C89.2078 27.8965 88.8247 29.2482 88.3304 30.2155C87.8608 31.158 87.2924 31.8153 86.6251 32.1873C85.9825 32.5345 85.2534 32.7081 84.4378 32.7081Z" fill="black" />
+          <Path d="M94.0347 32.7081C92.9967 32.7081 92.144 32.3857 91.4767 31.7409C90.8094 31.0712 90.4757 30.1907 90.4757 29.0994C90.4757 28.0329 90.8094 27.0284 91.4767 26.0859C92.144 25.1187 93.0584 24.2506 94.22 23.4817C95.3817 22.7128 96.7039 22.0928 98.1868 21.6215C98.5081 21.5223 98.6688 21.3115 98.6688 20.9891V17.6036C98.6688 16.4131 98.4834 15.5698 98.1127 15.0738C97.742 14.5529 97.2353 14.2925 96.5927 14.2925C95.9748 14.2925 95.4064 14.5777 94.8874 15.1482C94.3931 15.6938 94.0347 16.6239 93.8123 17.9384C93.6887 18.7321 93.4168 19.3149 92.9967 19.687C92.6012 20.0342 92.1934 20.2078 91.7733 20.2078C91.0812 20.2078 90.7352 19.8606 90.7352 19.1661C90.7352 18.4469 90.9329 17.74 91.3284 17.0455C91.7485 16.3263 92.2923 15.6814 92.9596 15.111C93.6269 14.5157 94.356 14.0445 95.1469 13.6972C95.9378 13.35 96.7286 13.1764 97.5195 13.1764C99.9663 13.1764 101.19 14.6025 101.19 17.4548V28.839C101.19 29.8807 101.449 30.4015 101.968 30.4015C102.29 30.4015 102.586 30.1907 102.858 29.7691C103.13 29.3226 103.266 28.5786 103.266 27.5369C103.266 27.14 103.426 26.9416 103.748 26.9416C104.044 26.9416 104.193 27.1524 104.193 27.5741C104.193 29.3846 103.871 30.6992 103.229 31.5176C102.611 32.3113 101.906 32.7081 101.116 32.7081C100.522 32.7081 100.053 32.4725 99.7068 32.0013C99.3608 31.5052 99.126 30.9224 99.0024 30.2527C98.9777 30.0047 98.8665 29.8807 98.6688 29.8807C98.4958 29.8559 98.3228 29.9675 98.1498 30.2155C97.5566 31.034 96.9511 31.654 96.3332 32.0757C95.7153 32.4973 94.9492 32.7081 94.0347 32.7081ZM95.0357 30.9968C95.6782 30.9968 96.2714 30.7736 96.8151 30.3271C97.3589 29.8559 97.8038 29.2358 98.1498 28.467C98.4958 27.6981 98.6688 26.83 98.6688 25.8627V23.1469C98.6688 22.6756 98.4093 22.5392 97.8903 22.7376C96.3826 23.2833 95.2087 24.0398 94.3683 25.007C93.5527 25.9495 93.1449 27.0904 93.1449 28.4298C93.1449 30.1411 93.7752 30.9968 95.0357 30.9968Z" fill="black" />
+          <Path d="M104.653 40C104.282 40 104.097 39.8636 104.097 39.5908C104.097 39.3179 104.257 39.1691 104.579 39.1443L105.098 39.0699C105.617 38.9955 105.95 38.8467 106.099 38.6235C106.272 38.4003 106.358 38.0282 106.358 37.5074V17.3804C106.358 16.9339 106.284 16.6363 106.136 16.4875C106.012 16.3139 105.777 16.2023 105.431 16.1526L104.653 16.041C104.332 16.0162 104.171 15.8798 104.171 15.6318C104.171 15.4334 104.369 15.297 104.764 15.2226C105.53 15.0986 106.111 14.9001 106.506 14.6273C106.927 14.3545 107.359 14.0197 107.804 13.6228C108.026 13.3996 108.212 13.288 108.36 13.288C108.583 13.288 108.694 13.4368 108.694 13.7344V14.8877C108.694 15.0614 108.768 15.1854 108.916 15.2598C109.064 15.3094 109.238 15.235 109.435 15.0365L109.843 14.6273C110.337 14.1313 110.844 13.7716 111.363 13.5484C111.882 13.3004 112.475 13.1764 113.143 13.1764C114.279 13.1764 115.28 13.5608 116.145 14.3297C117.035 15.0738 117.727 16.1154 118.221 17.4548C118.74 18.7941 119 20.369 119 22.1796C119 24.2382 118.679 26.0611 118.036 27.6485C117.394 29.2358 116.504 30.4759 115.367 31.3688C114.255 32.2617 112.969 32.7081 111.511 32.7081C110.77 32.7081 110.115 32.5717 109.546 32.2989C109.102 32.1005 108.879 32.2369 108.879 32.7081V37.5074C108.879 38.0282 108.953 38.3755 109.102 38.5491C109.275 38.7475 109.621 38.8839 110.14 38.9583L111.511 39.1443C111.783 39.1939 111.919 39.3303 111.919 39.5536C111.919 39.8512 111.734 40 111.363 40H104.653ZM111.623 31.7781C113.007 31.7781 114.119 30.9596 114.959 29.3226C115.824 27.6857 116.257 25.4783 116.257 22.7004C116.257 20.1458 115.886 18.1988 115.144 16.8595C114.403 15.5202 113.353 14.8505 111.993 14.8505C111.153 14.8505 110.424 15.1978 109.806 15.8922C109.188 16.5867 108.879 17.554 108.879 18.7941V28.1693C108.879 29.2854 109.126 30.1659 109.621 30.8108C110.14 31.4556 110.807 31.7781 111.623 31.7781Z" fill="black" />
+          <Path d="M2.93008 106C2.03008 106 1.58008 105.675 1.58008 105.025C1.58008 104.675 1.75508 104.225 2.10508 103.675L11.1051 89.95C14.8551 84.25 17.5551 79.35 19.2051 75.25C20.9051 71.1 21.7551 67.3 21.7551 63.85C21.7551 60.75 21.1051 58.375 19.8051 56.725C18.5551 55.075 16.7301 54.25 14.3301 54.25C11.9301 54.25 9.75508 55.1 7.80508 56.8C5.85508 58.45 4.60508 61.1 4.05508 64.75C3.90508 65.55 3.53008 65.95 2.93008 65.95C2.18008 65.95 1.85508 65.45 1.95508 64.45C2.30508 61.15 3.15508 58.55 4.50508 56.65C5.90508 54.7 7.58008 53.325 9.53008 52.525C11.4801 51.675 13.4551 51.25 15.4551 51.25C18.9051 51.25 21.7051 52.3 23.8551 54.4C26.0551 56.45 27.1551 59.325 27.1551 63.025C27.1551 65.625 26.5301 68.3 25.2801 71.05C24.0801 73.75 22.4051 76.725 20.2551 79.975C18.1551 83.175 15.7301 86.85 12.9801 91L7.13008 99.85C6.83008 100.3 6.80508 100.7 7.05508 101.05C7.35508 101.35 7.75508 101.5 8.25508 101.5H16.2801C18.1801 101.5 19.7551 101.3 21.0051 100.9C22.2551 100.45 23.2551 99.65 24.0051 98.5C24.7551 97.3 25.3301 95.6 25.7301 93.4L26.4051 89.875C26.5551 89.225 26.9301 88.9 27.5301 88.9C28.2301 88.9 28.5301 89.325 28.4301 90.175L27.5301 104.275C27.4301 105.425 26.8051 106 25.6551 106H2.93008Z" fill="black" />
+          <Path d="M46.1523 106.675C43.2523 106.675 40.7023 105.45 38.5023 103C36.3023 100.55 34.6023 97.225 33.4023 93.025C32.2023 88.825 31.6023 84.125 31.6023 78.925C31.6023 73.725 32.2023 69.05 33.4023 64.9C34.6023 60.7 36.3023 57.375 38.5023 54.925C40.7023 52.475 43.2523 51.25 46.1523 51.25C49.0523 51.25 51.5773 52.475 53.7273 54.925C55.9273 57.375 57.6273 60.7 58.8273 64.9C60.0773 69.05 60.7023 73.725 60.7023 78.925C60.7023 84.125 60.0773 88.825 58.8273 93.025C57.6273 97.225 55.9273 100.55 53.7273 103C51.5773 105.45 49.0523 106.675 46.1523 106.675ZM46.1523 104.65C49.3023 104.65 51.6023 102.525 53.0523 98.275C54.5523 94.025 55.3023 87.575 55.3023 78.925C55.3023 70.275 54.5523 63.85 53.0523 59.65C51.6023 55.4 49.3023 53.275 46.1523 53.275C43.0023 53.275 40.6773 55.4 39.1773 59.65C37.7273 63.85 37.0023 70.275 37.0023 78.925C37.0023 87.575 37.7273 94.025 39.1773 98.275C40.6773 102.525 43.0023 104.65 46.1523 104.65Z" fill="black" />
+          <Path d="M64.31 106C63.41 106 62.96 105.675 62.96 105.025C62.96 104.675 63.135 104.225 63.485 103.675L72.485 89.95C76.235 84.25 78.935 79.35 80.585 75.25C82.285 71.1 83.135 67.3 83.135 63.85C83.135 60.75 82.485 58.375 81.185 56.725C79.935 55.075 78.11 54.25 75.71 54.25C73.31 54.25 71.135 55.1 69.185 56.8C67.235 58.45 65.985 61.1 65.435 64.75C65.285 65.55 64.91 65.95 64.31 65.95C63.56 65.95 63.235 65.45 63.335 64.45C63.685 61.15 64.535 58.55 65.885 56.65C67.285 54.7 68.96 53.325 70.91 52.525C72.86 51.675 74.835 51.25 76.835 51.25C80.285 51.25 83.085 52.3 85.235 54.4C87.435 56.45 88.535 59.325 88.535 63.025C88.535 65.625 87.91 68.3 86.66 71.05C85.46 73.75 83.785 76.725 81.635 79.975C79.535 83.175 77.11 86.85 74.36 91L68.51 99.85C68.21 100.3 68.185 100.7 68.435 101.05C68.735 101.35 69.135 101.5 69.635 101.5H77.66C79.56 101.5 81.135 101.3 82.385 100.9C83.635 100.45 84.635 99.65 85.385 98.5C86.135 97.3 86.71 95.6 87.11 93.4L87.785 89.875C87.935 89.225 88.31 88.9 88.91 88.9C89.61 88.9 89.91 89.325 89.81 90.175L88.91 104.275C88.81 105.425 88.185 106 87.035 106H64.31Z" fill="black" />
+          <Path d="M100.182 106.675C98.8322 106.675 97.4322 106.475 95.9822 106.075C94.5822 105.675 93.4072 105.075 92.4572 104.275C91.5072 103.475 91.0322 102.5 91.0322 101.35C91.0322 100.6 91.2572 100 91.7072 99.55C92.1572 99.05 92.7572 98.8 93.5072 98.8C94.3572 98.8 94.9572 99.1 95.3072 99.7C95.7072 100.3 96.0572 100.975 96.3572 101.725C96.6572 102.475 97.1322 103.15 97.7822 103.75C98.4822 104.35 99.5572 104.65 101.007 104.65C102.607 104.65 104.157 104.2 105.657 103.3C107.207 102.35 108.482 100.825 109.482 98.725C110.532 96.625 111.057 93.85 111.057 90.4C111.057 85.65 109.932 82 107.682 79.45C105.432 76.85 101.607 75.325 96.2072 74.875C95.4572 74.775 95.1572 74.375 95.3072 73.675L99.2822 52.975C99.4322 52.325 99.8072 52 100.407 52H112.182C113.032 52 113.632 51.85 113.982 51.55C114.382 51.2 114.707 50.875 114.957 50.575C115.207 50.275 115.532 50.125 115.932 50.125C116.332 50.125 116.557 50.3 116.607 50.65C116.707 50.95 116.707 51.3 116.607 51.7L115.482 55.6C115.332 56.2 114.957 56.5 114.357 56.5H101.982C101.382 56.5 101.007 56.825 100.857 57.475L98.6822 68.95C98.5322 69.65 98.8322 70.025 99.5822 70.075C103.532 70.525 106.732 71.65 109.182 73.45C111.682 75.2 113.507 77.425 114.657 80.125C115.857 82.775 116.457 85.675 116.457 88.825C116.457 92.575 115.632 95.8 113.982 98.5C112.382 101.15 110.332 103.175 107.832 104.575C105.382 105.975 102.832 106.675 100.182 106.675Z" fill="black" />
+        </Svg>
+        <Text style={styles.titleName}>{data.displayName}</Text>
+        <Text style={styles.titleUsername}>@{data.username}</Text>
+        <Text style={styles.titleLabel}>{data.bio}</Text>
+      </View>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>github-yearly-recap.vercel.app</Text>
+      </View>
+    </Page>
+  );
 }
 
 function OverviewPage({ data }: PDFDocumentProps) {
-    return (
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.pageTitle}>Your Year at a Glance</Text>
-            <Text style={styles.pageSubtitle}>Here's what you accomplished in {data.year}</Text>
+  return (
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.pageTitle}>Your Year at a Glance</Text>
+      <Text style={styles.pageSubtitle}>Here's what you accomplished in {data.year}</Text>
 
-            <View style={styles.statsGrid}>
-                <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>Total Contributions</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.green }]}>
-                        {data.totalContributions.toLocaleString()}
-                    </Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>Longest Streak</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.orange }]}>
-                        {data.longestStreak.count}
-                        <Text style={styles.statSuffix}> days</Text>
-                    </Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>Pull Requests</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.purple }]}>
-                        {data.prCounts.opened}
-                    </Text>
-                    <Text style={styles.statDescription}>{data.prCounts.merged} merged</Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>Issues</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.blue }]}>
-                        {data.issueCounts.opened}
-                    </Text>
-                    <Text style={styles.statDescription}>{data.issueCounts.closed} closed</Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>New Repos</Text>
-                    <Text style={styles.statValue}>{data.totalReposCreated}</Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>Stars Earned</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.orange }]}>
-                        {data.totalStars}
-                    </Text>
-                </View>
-            </View>
+      <View style={[styles.statsGrid]}>
+        <View style={[styles.statCard, { backgroundColor: colors.background.green }]}>
+          <Text style={styles.statLabel}>Total Contributions</Text>
+          <Text style={[styles.statValue, { color: colors.accent.green }]}>
+            {data.totalContributions.toLocaleString()}
+          </Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: colors.background.orange }]}>
+          <Text style={styles.statLabel}>Longest Streak</Text>
+          <Text style={[styles.statValue, { color: colors.accent.orange }]}>
+            {data.longestStreak.count}
+            <Text style={styles.statSuffix}> days</Text>
+          </Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: colors.background.purple }]}>
+          <Text style={styles.statLabel}>Pull Requests</Text>
+          <Text style={[styles.statValue, { color: colors.accent.purple }]}>
+            {data.prCounts.opened}
+          </Text>
+          <Text style={styles.statDescription}>{data.prCounts.merged} merged</Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: colors.background.blue }]}>
+          <Text style={styles.statLabel}>Issues</Text>
+          <Text style={[styles.statValue, { color: colors.accent.blue }]}>
+            {data.issueCounts.opened}
+          </Text>
+          <Text style={styles.statDescription}>{data.issueCounts.closed} closed</Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: colors.background.blue }]}>
+          <Text style={styles.statLabel}>New Repos</Text>
+          <Text style={styles.statValue}>{data.totalReposCreated}</Text>
+        </View>
 
-            <View style={styles.footer}>
-                <Text style={styles.footerText}>
-                    Busiest day: {formatDate(data.peakStats.topDay.date)} with {data.peakStats.topDay.contributions} contributions
-                </Text>
-            </View>
-        </Page>
-    );
+        <View style={[styles.statCard, { backgroundColor: colors.background.orange }]}>
+          <Text style={styles.statLabel}>Stars Earned</Text>
+          <Text style={[styles.statValue, { color: colors.accent.orange }]}>
+            {data.totalStars}
+          </Text>
+        </View>
+      </View>
+    </Page>
+  );
 }
 
 function HeatmapPage({ data }: PDFDocumentProps) {
-    const weeks = data.contributionCalendar.weeks;
+  const weeks = data.contributionCalendar.weeks;
 
-    return (
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.pageTitle}>Contribution Graph</Text>
-            <Text style={styles.pageSubtitle}>
-                {data.totalContributions.toLocaleString()} contributions in {data.year}
-            </Text>
+  return (
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.pageTitle}>Contribution Graph</Text>
+      <Text style={styles.pageSubtitle}>
+        {data.totalContributions.toLocaleString()} contributions in {data.year}
+      </Text>
 
-            <View style={styles.heatmapContainer}>
-                {weeks.map((week, weekIndex) => (
-                    <View key={weekIndex} style={styles.heatmapWeek}>
-                        {week.contributionDays.map((day, dayIndex) => (
-                            <View
-                                key={dayIndex}
-                                style={[
-                                    styles.heatmapCell,
-                                    { backgroundColor: getHeatmapColor(day.contributionCount) },
-                                ]}
-                            />
-                        ))}
-                    </View>
-                ))}
-            </View>
+      <View style={styles.heatmapContainer}>
+        {weeks.map((week, weekIndex) => (
+          <View key={weekIndex} style={styles.heatmapWeek}>
+            {week.contributionDays.map((day, dayIndex) => (
+              <View
+                key={dayIndex}
+                style={[
+                  styles.heatmapCell,
+                  { backgroundColor: getHeatmapColor(day.contributionCount) },
+                ]}
+              />
+            ))}
+          </View>
+        ))}
+      </View>
 
-            <View style={styles.peakStatsRow}>
-                <View style={styles.peakStat}>
-                    <Text style={styles.peakStatValue}>{data.peakStats.topMonth.contributions}</Text>
-                    <Text style={styles.peakStatLabel}>in {data.peakStats.topMonth.month}{'\n'}(best month)</Text>
-                </View>
-                <View style={styles.peakStat}>
-                    <Text style={styles.peakStatValue}>{data.peakStats.topWeek.contributions}</Text>
-                    <Text style={styles.peakStatLabel}>in your best week</Text>
-                </View>
-                <View style={styles.peakStat}>
-                    <Text style={styles.peakStatValue}>{Math.round(data.totalContributions / 365)}</Text>
-                    <Text style={styles.peakStatLabel}>daily average</Text>
-                </View>
-            </View>
-        </Page>
-    );
+      <View style={styles.peakStatsRow}>
+        <View style={styles.peakStat}>
+          <Text style={styles.peakStatValue}>{data.peakStats.topMonth.contributions}</Text>
+          <Text style={styles.peakStatLabel}>in {data.peakStats.topMonth.month}{'\n'}(best month)</Text>
+        </View>
+        <View style={styles.peakStat}>
+          <Text style={styles.peakStatValue}>{data.peakStats.topWeek.contributions}</Text>
+          <Text style={styles.peakStatLabel}>in your best week</Text>
+        </View>
+        <View style={styles.peakStat}>
+          <Text style={styles.peakStatValue}>{Math.round(data.totalContributions / 365)}</Text>
+          <Text style={styles.peakStatLabel}>daily average</Text>
+        </View>
+      </View>
+    </Page>
+  );
 }
 
 function StreaksPage({ data }: PDFDocumentProps) {
-    return (
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.pageTitle}>Streaks & Consistency</Text>
-            <Text style={styles.pageSubtitle}>Your dedication throughout {data.year}</Text>
+  return (
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.pageTitle}>Streaks & Consistency</Text>
+      <Text style={styles.pageSubtitle}>Your dedication throughout {data.year}</Text>
 
-            <View style={[styles.streakCard, { borderLeftColor: colors.accent.orange }]}>
-                <Text style={[styles.streakValue, { color: colors.accent.orange }]}>
-                    {data.longestStreak.count} days
-                </Text>
-                <Text style={styles.streakLabel}>Longest Streak</Text>
-                <Text style={styles.streakDates}>
-                    {formatDate(data.longestStreak.startDate)} - {formatDate(data.longestStreak.endDate)}
-                </Text>
-            </View>
+      <View style={[styles.streakCard, { backgroundColor: colors.background.orange }]}>
+        <Text style={styles.streakLabel}>Longest Streak</Text>
+        <Text style={[styles.streakValue, { color: colors.accent.orange }]}>
+          {data.longestStreak.count}
+          <Text style={styles.statSuffix}>days</Text>
+        </Text>
+        <Text style={styles.streakDates}>
+          {formatDate(data.longestStreak.startDate)} - {formatDate(data.longestStreak.endDate)}
+        </Text>
+      </View>
 
-            <View style={[styles.streakCard, { borderLeftColor: colors.accent.green }]}>
-                <Text style={[styles.streakValue, { color: colors.accent.green }]}>
-                    {data.currentStreak.count} days
-                </Text>
-                <Text style={styles.streakLabel}>Current Streak</Text>
-                {data.currentStreak.count > 0 && (
-                    <Text style={styles.streakDates}>
-                        Started {formatDate(data.currentStreak.startDate)}
-                    </Text>
-                )}
-            </View>
+      <View style={[styles.streakCard, { backgroundColor: colors.background.green }]}>
+        <Text style={styles.streakLabel}>Current Streak</Text>
+        <Text style={[styles.streakValue, { color: colors.accent.green }]}>
+          {data.currentStreak.count}
+          <Text style={styles.statSuffix}>days</Text>
+        </Text>
+        {data.currentStreak.count > 0 && (
+          <Text style={styles.streakDates}>
+            From {formatDate(data.currentStreak.startDate)}
+          </Text>
+        )}
+      </View>
 
-            <View style={[styles.streakCard, { borderLeftColor: colors.accent.blue }]}>
-                <Text style={[styles.streakValue, { color: colors.accent.blue }]}>
-                    {data.peakStats.topDay.contributions}
-                </Text>
-                <Text style={styles.streakLabel}>Peak Day Contributions</Text>
-                <Text style={styles.streakDates}>
-                    on {data.peakStats.topDay.dayOfWeek}, {formatDate(data.peakStats.topDay.date)}
-                </Text>
-            </View>
-        </Page>
-    );
+      <View style={[styles.streakCard, { backgroundColor: colors.background.blue }]}>
+        <Text style={styles.streakLabel}>Most Active Day</Text>
+        <Text style={[styles.streakValue, { color: colors.accent.blue }]}>
+          {data.peakStats.topDay.contributions}
+          <Text style={styles.statSuffix}>contributions</Text>
+        </Text>
+        <Text style={styles.streakDates}>
+          {data.peakStats.topDay.dayOfWeek}, {formatDate(data.peakStats.topDay.date)}
+        </Text>
+      </View>
+    </Page>
+  );
 }
 
 function PRsIssuesPage({ data }: PDFDocumentProps) {
-    return (
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.pageTitle}>PRs & Issues</Text>
-            <Text style={styles.pageSubtitle}>Your collaboration activity in {data.year}</Text>
+  return (
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.pageTitle}>PRs & Issues</Text>
+      <Text style={styles.pageSubtitle}>Your collaboration activity in {data.year}</Text>
 
-            <View style={styles.statsGrid}>
-                <View style={[styles.statCard, { width: '45%' }]}>
-                    <Text style={styles.statLabel}>PRs Opened</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.purple }]}>
-                        {data.prCounts.opened}
-                    </Text>
-                </View>
-                <View style={[styles.statCard, { width: '45%' }]}>
-                    <Text style={styles.statLabel}>PRs Merged</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.green }]}>
-                        {data.prCounts.merged}
-                    </Text>
-                </View>
-                <View style={[styles.statCard, { width: '45%' }]}>
-                    <Text style={styles.statLabel}>Issues Opened</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.blue }]}>
-                        {data.issueCounts.opened}
-                    </Text>
-                </View>
-                <View style={[styles.statCard, { width: '45%' }]}>
-                    <Text style={styles.statLabel}>Issues Closed</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.green }]}>
-                        {data.issueCounts.closed}
-                    </Text>
-                </View>
-            </View>
+      <View style={styles.statsGrid}>
+        <View style={[styles.statCard, { width: '45%' }]}>
+          <Text style={styles.statLabel}>PRs Opened</Text>
+          <Text style={[styles.statValue, { color: colors.accent.purple }]}>
+            {data.prCounts.opened}
+          </Text>
+        </View>
+        <View style={[styles.statCard, { width: '45%' }]}>
+          <Text style={styles.statLabel}>PRs Merged</Text>
+          <Text style={[styles.statValue, { color: colors.accent.green }]}>
+            {data.prCounts.merged}
+          </Text>
+        </View>
+        <View style={[styles.statCard, { width: '45%' }]}>
+          <Text style={styles.statLabel}>PRs Closed</Text>
+          <Text style={[styles.statValue, { color: colors.accent.green }]}>
+            {data.prCounts.closed}
+          </Text>
+        </View>
+        {data.prCounts.merged > 0 && (
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Merge Rate {Math.round((data.prCounts.merged / data.prCounts.opened) * 100)}%</Text>
+            <Text style={styles.statValue}>{data.totalReposCreated}</Text>
+          </View>
+        )}
+        <View style={[styles.statCard, { width: '45%' }]}>
+          <Text style={styles.statLabel}>Issues Opened</Text>
+          <Text style={[styles.statValue, { color: colors.accent.blue }]}>
+            {data.issueCounts.opened}
+          </Text>
+        </View>
+        <View style={[styles.statCard, { width: '45%' }]}>
+          <Text style={styles.statLabel}>Issues Closed</Text>
+          <Text style={[styles.statValue, { color: colors.accent.green }]}>
+            {data.issueCounts.closed}
+          </Text>
+        </View>
+      </View>
 
-            {data.prCounts.merged > 0 && (
-                <View style={{ marginTop: 30 }}>
-                    <Text style={styles.footerText}>
-                        Merge rate: {Math.round((data.prCounts.merged / data.prCounts.opened) * 100)}%
-                    </Text>
-                </View>
-            )}
-        </Page>
-    );
+    </Page>
+  );
 }
 
 function ReposPage({ data }: PDFDocumentProps) {
-    const repos = data.newRepos.slice(0, 5);
+  const repos = data.newRepos.slice(0, 5);
 
-    return (
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.pageTitle}>New Repositories</Text>
-            <Text style={styles.pageSubtitle}>{data.totalReposCreated} repos created in {data.year}</Text>
+  return (
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.pageTitle}>New Repositories</Text>
+      <Text style={styles.pageSubtitle}>{data.totalReposCreated} repos created in {data.year}</Text>
 
-            {repos.map((repo, index) => (
-                <View key={index} style={styles.repoItem}>
-                    <Text style={styles.repoName}>{repo.name}</Text>
-                    {repo.description && (
-                        <Text style={styles.repoDescription}>{repo.description}</Text>
-                    )}
-                    <View style={styles.repoStats}>
-                        <Text style={styles.repoStat}>⭐ {repo.stars}</Text>
-                        <Text style={styles.repoStat}>🔀 {repo.forks}</Text>
-                        {repo.language && <Text style={styles.repoStat}>{repo.language}</Text>}
-                    </View>
-                </View>
-            ))}
-        </Page>
-    );
+      {repos.map((repo, index) => (
+        <View key={index} style={styles.repoItem}>
+          <Text style={styles.repoName}>{repo.name}</Text>
+          {repo.description && (
+            <Text style={styles.repoDescription}>{repo.description}</Text>
+          )}
+          <View style={styles.repoStats}>
+            {(repo.stars ? <Text style={styles.repoStat}> <StarIcon /> {repo.stars} </Text> : null)}
+            {(repo.forks ? <Text style={styles.repoStat}> Fork + repo.forks </Text> : null)}
+            {repo.language && <Text style={styles.repoStat}>{repo.language}</Text>}
+          </View>
+        </View>
+      ))}
+    </Page>
+  );
 }
 
 function SocialPage({ data }: PDFDocumentProps) {
-    return (
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.pageTitle}>Social & Community</Text>
-            <Text style={styles.pageSubtitle}>Your GitHub presence in {data.year}</Text>
+  return (
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.pageTitle}>Social & Community</Text>
+      <Text style={styles.pageSubtitle}>Your GitHub presence in {data.year}</Text>
 
-            <View style={styles.statsGrid}>
-                <View style={[styles.statCard, { width: '30%' }]}>
-                    <Text style={styles.statLabel}>Followers</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.pink }]}>
-                        {data.followers}
-                    </Text>
-                </View>
-                <View style={[styles.statCard, { width: '30%' }]}>
-                    <Text style={styles.statLabel}>Following</Text>
-                    <Text style={styles.statValue}>{data.following}</Text>
-                </View>
-                <View style={[styles.statCard, { width: '30%' }]}>
-                    <Text style={styles.statLabel}>Total Stars</Text>
-                    <Text style={[styles.statValue, { color: colors.accent.orange }]}>
-                        {data.totalStars}
-                    </Text>
-                </View>
-            </View>
-        </Page>
-    );
+      <View style={styles.statsGrid}>
+        <View style={[styles.statCard, { width: '30%' }]}>
+          <Text style={styles.statLabel}>Followers</Text>
+          <Text style={[styles.statValue, { color: colors.accent.pink }]}>
+            {data.followers}
+          </Text>
+        </View>
+        <View style={[styles.statCard, { width: '30%' }]}>
+          <Text style={styles.statLabel}>Following</Text>
+          <Text style={styles.statValue}>{data.following}</Text>
+        </View>
+        <View style={[styles.statCard, { width: '30%' }]}>
+          <Text style={styles.statLabel}>Total Stars</Text>
+          <Text style={[styles.statValue, { color: colors.accent.orange }]}>
+            {data.totalStars}
+          </Text>
+        </View>
+      </View>
+    </Page>
+  );
 }
 
 function LanguagesPage({ data }: PDFDocumentProps) {
-    const languages = data.topLanguages.slice(0, 6);
+  const languages = data.topLanguages.slice(0, 6);
 
-    return (
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.pageTitle}>Top Languages</Text>
-            <Text style={styles.pageSubtitle}>Most used programming languages in {data.year}</Text>
+  return (
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.pageTitle}>Top Languages</Text>
+      <Text style={styles.pageSubtitle}>Most used programming languages in {data.year}</Text>
 
-            {languages.length > 0 && (
-                <>
-                    <View style={styles.languageBar}>
-                        {languages.map((lang, index) => (
-                            <View
-                                key={index}
-                                style={{
-                                    backgroundColor: lang.color,
-                                    width: `${lang.percentage}%`,
-                                }}
-                            />
-                        ))}
-                    </View>
+      {languages.length > 0 && (
+        <>
+          <View style={styles.languageBar}>
+            {languages.map((lang, index) => (
+              <View
+                key={index}
+                style={{
+                  backgroundColor: lang.color,
+                  width: `${lang.percentage}%`,
 
-                    {languages.map((lang, index) => (
-                        <View key={index} style={styles.languageItem}>
-                            <View style={[styles.languageDot, { backgroundColor: lang.color }]} />
-                            <Text style={styles.languageName}>{lang.name}</Text>
-                            <Text style={styles.languagePercent}>{lang.percentage.toFixed(1)}%</Text>
-                        </View>
-                    ))}
-                </>
-            )}
-        </Page>
-    );
+                }}
+              />
+            ))}
+          </View>
+
+          {languages.map((lang, index) => (
+            <View key={index} style={styles.languageItem}>
+              <View style={[styles.languageDot, { backgroundColor: lang.color }]} />
+              <Text style={styles.languageName}>{lang.name}</Text>
+              <Text style={styles.languagePercent}>{lang.percentage.toFixed(1)}%</Text>
+            </View>
+          ))}
+        </>
+      )}
+    </Page>
+  );
 }
 
 function NotesPage({ data }: PDFDocumentProps) {
-    const notes = data.notes.slice(0, 6);
+  const notes = data.notes.slice(0, 6);
 
-    return (
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.pageTitle}>Fun Notes</Text>
-            <Text style={styles.pageSubtitle}>AI-powered insights about your {data.year} journey</Text>
+  return (
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.pageTitle}>Fun Notes</Text>
+      <Text style={styles.pageSubtitle}>AI-powered insights about your {data.year} journey</Text>
 
-            {notes.map((note, index) => (
-                <View key={index} style={styles.noteCard}>
-                    <Text style={styles.noteEmoji}>{note.emoji}</Text>
-                    <Text style={styles.noteTitle}>{note.title}</Text>
-                    <Text style={styles.noteContent}>{note.content}</Text>
-                </View>
-            ))}
+      <View style={styles.statsGrid}>
+        {notes.map((note, index) => (
+          <View key={index} style={styles.noteCard}>
+            <Text style={styles.noteTitle}>{note.title}</Text>
+            <Text style={styles.noteContent}>{note.content}</Text>
+          </View>
+        ))}
+      </View>
 
-            <View style={styles.footer}>
-                <Text style={styles.footerText}>Powered by Gemini AI</Text>
-            </View>
-        </Page>
-    );
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Powered by Gemini AI</Text>
+      </View>
+    </Page>
+  );
 }
 
 function SummaryPage({ data }: PDFDocumentProps) {
-    return (
-        <Page size="A4" style={styles.page}>
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={styles.pageTitle}>Your {data.year} Highlights</Text>
+  return (
+    <Page size="A4" style={styles.page}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={styles.pageTitle}>Your {data.year} Highlights</Text>
 
-                <View style={styles.summaryStats}>
-                    <View style={[styles.summaryBadge, { backgroundColor: '#dcfce7' }]}>
-                        <Text style={[styles.summaryBadgeText, { color: colors.accent.green }]}>
-                            {data.totalContributions.toLocaleString()} contributions
-                        </Text>
-                    </View>
-                    <View style={[styles.summaryBadge, { backgroundColor: '#ffedd5' }]}>
-                        <Text style={[styles.summaryBadgeText, { color: colors.accent.orange }]}>
-                            {data.longestStreak.count} day streak
-                        </Text>
-                    </View>
-                    {data.topLanguages[0] && (
-                        <View style={[styles.summaryBadge, { backgroundColor: '#dbeafe' }]}>
-                            <Text style={[styles.summaryBadgeText, { color: colors.accent.blue }]}>
-                                {data.topLanguages[0].name}
-                            </Text>
-                        </View>
-                    )}
-                </View>
-
-                <Text style={styles.thankYou}>Thank you for an amazing {data.year}! 🎉</Text>
-
-                <View style={{ marginTop: 40 }}>
-                    <Link src="https://github-yearly-recap.vercel.app" style={styles.footerText}>
-                        github-yearly-recap.vercel.app
-                    </Link>
-                </View>
+        <View style={styles.summaryStats}>
+          <View style={[styles.summaryBadge, { backgroundColor: '#dcfce7' }]}>
+            <Text style={[styles.summaryBadgeText, { color: colors.accent.green }]}>
+              {data.totalContributions.toLocaleString()} contributions
+            </Text>
+          </View>
+          <View style={[styles.summaryBadge, { backgroundColor: '#ffedd5' }]}>
+            <Text style={[styles.summaryBadgeText, { color: colors.accent.orange }]}>
+              {data.longestStreak.count} day streak
+            </Text>
+          </View>
+          {data.topLanguages[0] && (
+            <View style={[styles.summaryBadge, { backgroundColor: '#dbeafe' }]}>
+              <Text style={[styles.summaryBadgeText, { color: colors.accent.blue }]}>
+                {data.topLanguages[0].name}
+              </Text>
             </View>
-        </Page>
-    );
+          )}
+        </View>
+
+        <Text style={styles.thankYou}>Thank you for an amazing {data.year}! 🎉</Text>
+
+        <View style={{ marginTop: 40 }}>
+          <Link src="https://github-yearly-recap.vercel.app" style={styles.footerText}>
+            github-yearly-recap.vercel.app
+          </Link>
+        </View>
+      </View>
+    </Page>
+  );
 }
 
 // Main Document Component
 export function RecapPDFDocument({ data }: PDFDocumentProps) {
-    return (
-        <Document
-            title={`GitHub Recap ${data.year} - ${data.username}`}
-            author="GitHub Yearly Recap"
-            subject={`GitHub Year in Review for ${data.displayName}`}
-        >
-            <TitlePage data={data} />
-            <OverviewPage data={data} />
-            <HeatmapPage data={data} />
-            <StreaksPage data={data} />
-            <PRsIssuesPage data={data} />
-            <ReposPage data={data} />
-            <SocialPage data={data} />
-            <LanguagesPage data={data} />
-            <NotesPage data={data} />
-            <SummaryPage data={data} />
-        </Document>
-    );
+  return (
+    <Document
+      title={`GitHub Recap ${data.year} - ${data.username}`}
+      author="GitHub Yearly Recap"
+      subject={`GitHub Year in Review for ${data.displayName}`}
+    >
+      <TitlePage data={data} />
+      <OverviewPage data={data} />
+      <HeatmapPage data={data} />
+      <StreaksPage data={data} />
+      <PRsIssuesPage data={data} />
+      <ReposPage data={data} />
+      <SocialPage data={data} />
+      <LanguagesPage data={data} />
+      <NotesPage data={data} />
+      <SummaryPage data={data} />
+    </Document>
+  );
 }
