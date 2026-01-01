@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { renderToBuffer } from '@react-pdf/renderer';
+
 import { RecapPDFDocument } from './_lib/pdf-document';
 import { getMockRecapData } from './_lib/mock-data';
 import { getRecap } from './_lib/firestore';
@@ -54,6 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // Generate PDF
+        const { renderToBuffer } = await import('@react-pdf/renderer');
         const pdfBuffer = await renderToBuffer(
             React.createElement(RecapPDFDocument, { data: recapData as any }) as any
         );
