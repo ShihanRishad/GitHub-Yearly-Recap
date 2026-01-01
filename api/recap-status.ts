@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getRecap } from './_lib/firestore';
+import { getRecap } from './_lib/firestore.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     // CORS headers

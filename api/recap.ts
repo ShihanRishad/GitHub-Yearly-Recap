@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getRecap, createRecap, updateRecapReady } from './_lib/firestore';
-import { validateConfig, getValidationErrors } from './_lib/config';
-import { generateOGImage } from './_lib/og-image';
-import { uploadImage } from './_lib/cloudinary';
-import type { ContributionCalendar } from './_lib/types';
+import { getRecap, createRecap, updateRecapReady } from './_lib/firestore.js';
+import { validateConfig, getValidationErrors } from './_lib/config.js';
+import { generateOGImage } from './_lib/og-image.js';
+import { uploadImage } from './_lib/cloudinary.js';
+import type { ContributionCalendar } from './_lib/types.js';
 
 // Check if it's old image and regenerate it to newer one
 function isOldOgImageFormat(ogImageUrl: string | null): boolean {

@@ -1,4 +1,4 @@
-import { config } from './config';
+import { config } from './config.js';
 
 const GITHUB_GRAPHQL_URL = 'https://api.github.com/graphql';
 
