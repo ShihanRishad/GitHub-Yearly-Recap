@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { fetchGitHubData } from './_lib/github.js';
-import { updateRecapReady, updateRecapError, updateRecapStep } from './_lib/firestore.js';
-import { calculateStreaks, calculatePeakStats, calculateLanguageStats, calculateTotalStars } from './_lib/stats.js';
-import { generateCommentary } from './_lib/gemini.js';
-import { generateOGImage } from './_lib/og-image.js';
-import { uploadImage } from './_lib/cloudinary.js';
-import { validateConfig, getValidationErrors } from './_lib/config.js';
+import { fetchGitHubData } from '../lib/github.js';
+import { updateRecapReady, updateRecapError, updateRecapStep } from '../lib/firestore.js';
+import { calculateStreaks, calculatePeakStats, calculateLanguageStats, calculateTotalStars } from '../lib/stats.js';
+import { generateCommentary } from '../lib/gemini.js';
+import { generateOGImage } from '../lib/og-image.js';
+import { uploadImage } from '../lib/cloudinary.js';
+import { validateConfig, getValidationErrors } from '../lib/config.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
