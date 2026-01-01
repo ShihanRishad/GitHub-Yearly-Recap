@@ -1,9 +1,6 @@
-// PDF Generation API Endpoint
-// Generates a multi-page PDF recap for a GitHub user
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { renderToBuffer } from '@react-pdf/renderer';
-import { RecapPDFDocument } from './_lib/pdf-document.js';
+import { RecapPDFDocument } from './_lib/pdf-document';
 import { getMockRecapData } from './_lib/mock-data.js';
 import { getRecap } from './_lib/firestore.js';
 import React from 'react';
@@ -42,10 +39,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         let recapData;
 
         if (isDemo) {
-            // Use mock data for demo mode
             recapData = getMockRecapData(username, year);
         } else {
-            // Fetch from Firestore
             const existingRecap = await getRecap(username, year);
 
             if (!existingRecap || existingRecap.status !== 'ready' || !existingRecap.processedJson) {
