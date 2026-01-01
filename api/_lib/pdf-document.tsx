@@ -1,7 +1,7 @@
 // PDF Document Component using @react-pdf/renderer
 // Light theme design with pages for each slide
 
-import React from 'react';
+import * as React from 'react';
 import {
   Document,
   Page,
