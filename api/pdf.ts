@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { renderToBuffer } from '@react-pdf/renderer';
-import { RecapPDFDocument } from '../lib/pdf-document.js';
-import { getMockRecapData } from '../lib/mock-data.js';
-import { getRecap } from '../lib/firestore.js';
+import { RecapPDFDocument } from './_lib/pdf-document';
+import { getMockRecapData } from './_lib/mock-data';
+import { getRecap } from './_lib/firestore';
 import React from 'react';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

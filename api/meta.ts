@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { getRecap } from '../lib/firestore.js';
+import { getRecap } from './_lib/firestore';
 import fs from 'fs';
 import path from 'path';
 

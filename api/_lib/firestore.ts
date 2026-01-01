@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import { config } from './config.js';
+import { config } from './config';
 
 // Initialize Firebase Admin SDK (singleton)
 let db: admin.firestore.Firestore | null = null;
