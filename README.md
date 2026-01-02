@@ -4,6 +4,17 @@
 
 A cinematic journey through your year in code.
 
+<br>
+<div align="center">
+  <a href="https://peerlist.io/shihan/project/github-yearly-recap" target="_blank" rel="noreferrer">
+    <img align="center"
+      src="https://peerlist.io/api/v1/projects/embed/PRJH8OEL6ONDQRM7G29G6RP9Q89GDN?showUpvote=false&theme=dark"
+      alt="GitHub Yearly Recap"
+      width="170"
+    />
+  </a>
+</div>
+<br>
 GitHub Yearly Recap processes your GitHub timeline to create an interactive, personalized presentation. Inspired by the "Wrapped" format, it combines detailed activity analysis with fluid animations and AI-generated insights to tell the story of your open-source contributions.
 
 ## Features
