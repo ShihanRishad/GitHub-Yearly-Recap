@@ -16,8 +16,8 @@ import {
   Font,
   Image,
 } from '@react-pdf/renderer';
-import type { RecapData, NewRepo, CommentaryNote, LanguageStats } from './_lib/mock-data.js';
-import type { ContributionWeek, ContributionDay } from './_lib/types.js';
+import type { RecapData, NewRepo, CommentaryNote, LanguageStats } from '../_lib/mock-data.js';
+import type { ContributionWeek, ContributionDay } from '../_lib/types.js';
 
 // Light theme colors
 const colors = {
