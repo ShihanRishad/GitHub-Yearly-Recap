@@ -3,19 +3,21 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Download01Icon, Share01Icon, Image01Icon, RefreshIcon } from '@hugeicons/core-free-icons';
+import { Download01Icon, Share01Icon, Image01Icon, RefreshIcon, File01Icon } from '@hugeicons/core-free-icons';
 import type { RecapData } from '@/types';
 
 interface ShareSlideProps {
     data: RecapData;
     onRegenerate?: () => void;
+    isDemo?: boolean;
 }
 
-export function ShareSlide({ data, onRegenerate }: ShareSlideProps) {
+export function ShareSlide({ data, onRegenerate, isDemo = false }: ShareSlideProps) {
     const shareUrl = `${window.location.origin}/u/${data.username}/${data.year}`;
     const shareText = `Check out my GitHub Recap ${data.year}! 🚀 ${data.totalContributions} contributions, ${data.longestStreak.count} day streak, and more!`;
 
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
     const handleDownload = async () => {
         if (!data.ogImageUrl) return;
@@ -46,6 +48,41 @@ export function ShareSlide({ data, onRegenerate }: ShareSlideProps) {
             window.open(data.ogImageUrl, '_blank');
         } finally {
             setIsDownloading(false);
+        }
+    };
+
+    const handleGeneratePdf = async () => {
+        setIsGeneratingPdf(true);
+        try {
+            const response = await fetch(
+                `/api/pdf?username=${data.username}&year=${data.year}&demo=${isDemo}`
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate PDF');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `${data.username}-${data.year}-recap.pdf`;
+            document.body.appendChild(a);
+            a.click();
+
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+            alert('Failed to generate PDF. Please try again.');
+        } finally {
+            setIsGeneratingPdf(false);
         }
     };
 
@@ -125,6 +162,20 @@ export function ShareSlide({ data, onRegenerate }: ShareSlideProps) {
                             <HugeiconsIcon icon={Download01Icon} strokeWidth={2} size={18} />
                         )}
                         {isDownloading ? 'Downloading...' : 'Download Image'}
+                    </Button>
+                    <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={handleGeneratePdf}
+                        disabled={isGeneratingPdf}
+                        className="gap-2 w-full sm:w-auto"
+                    >
+                        {isGeneratingPdf ? (
+                            <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} size={18} className="animate-spin" />
+                        ) : (
+                            <HugeiconsIcon icon={File01Icon} strokeWidth={2} size={18} />
+                        )}
+                        {isGeneratingPdf ? 'Generating...' : 'Generate PDF'}
                     </Button>
                     <Button
                         size="lg"

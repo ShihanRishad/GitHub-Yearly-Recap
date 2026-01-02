@@ -175,7 +175,7 @@ export function HomePage() {
             transition={{ delay: 0.4 }}
             className="mt-2"
           >
-            <Select value={year} onValueChange={setYear}>
+            <Select value="2025" onValueChange={setYear}>
               <SelectTrigger
                 className="w-auto min-w-[100px] h-9 rounded-full bg-secondary/50 border-transparent hover:bg-secondary/80 transition-all px-4 text-sm font-medium focus:ring-0 focus:ring-offset-0 shadow-sm"
               >

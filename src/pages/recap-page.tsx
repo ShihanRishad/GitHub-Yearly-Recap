@@ -385,7 +385,7 @@ export function RecapPage() {
       <SocialSlide key="social" data={data} />,
       <LanguagesSlide key="languages" data={data} />,
       <NotesSlide key="notes" data={data} />,
-      <ShareSlide key="share" data={data} onRegenerate={handleRegenerate} />,
+      <ShareSlide key="share" data={data} onRegenerate={handleRegenerate} isDemo={isDemo} />,
     ];
   };
 
