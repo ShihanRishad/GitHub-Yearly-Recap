@@ -146,7 +146,7 @@ export async function generateOGImage(props: OGImageProps): Promise<Buffer> {
                     color: '#ffffff',
                 },
                 children: [
-                    // ROW 1: Bio & Branding
+                    // ROW 1: Bio & Logo
                     {
                         type: 'div',
                         props: {
@@ -178,7 +178,7 @@ export async function generateOGImage(props: OGImageProps): Promise<Buffer> {
                                                 props: {
                                                     style: { display: 'flex', flexDirection: 'column' },
                                                     children: [
-                                                        { type: 'div', props: { style: { fontSize: '56px', fontWeight: 700, lineHeight: 1.1 }, children: props.displayName } },
+                                                        { type: 'div', props: { style: { fontSize: (props.displayName.length > 25) ? '32px' : (props.displayName.length > 16) ? '43px' : '56px', fontWeight: 700, lineHeight: 1.1 }, children: props.displayName } },
                                                         { type: 'div', props: { style: { fontSize: '28px', color: '#8b949e', marginTop: '6px' }, children: `@${props.username}` } },
                                                         { type: 'div', props: { style: { fontSize: '20px', color: '#8b949e', opacity: 0.7, marginTop: '10px' }, children: `github.com/${props.username}` } },
                                                     ]
@@ -192,7 +192,7 @@ export async function generateOGImage(props: OGImageProps): Promise<Buffer> {
                                     type: 'img',
                                     props: {
                                         src: brandingDataUri,
-                                        height: 180, // Height matching visual scale
+                                        height: (props.displayName.length > 16) ? 120 : 140, // Height matching visual scale
                                         style: { display: 'flex' }
                                     }
                                 } : {
