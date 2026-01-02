@@ -39,6 +39,7 @@ const colors = {
         blue: '#3b82f6',
         purple: '#a855f7',
         pink: '#ec4899',
+        darkGrey: '#676572ff',
     },
     heatmap: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
 };
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
         fontSize: 32,
         fontWeight: 'bold',
         color: colors.primary,
-        marginBottom: 8,
+        marginBottom: 14,
         textAlign: 'center',
     },
     pageSubtitle: {
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
     },
     // Languages
     languageBar: {
-        height: 16,
+        height: 13,
         borderRadius: 8,
         flexDirection: 'row',
         overflow: 'hidden',
@@ -247,19 +248,107 @@ const styles = StyleSheet.create({
         fontSize: 24,
     },
     languageDot: {
-        width: 18,
-        height: 18,
+        width: 16,
+        height: 16,
         borderRadius: 12,
         marginRight: 8,
     },
     languageName: {
-        fontSize: 18,
+        fontSize: 16,
         color: colors.primary,
         flex: 1,
     },
     languagePercent: {
-        fontSize: 18,
+        fontSize: 16,
         color: colors.muted,
+    },
+    highlightCard: {
+        backgroundColor: '#eeeeeeb2',
+        borderRadius: 24,
+        padding: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 40,
+        borderWidth: 1,
+        borderColor: '#eeeeee',
+    },
+    highlightLabel: {
+        fontSize: 12,
+        color: colors.muted,
+        marginBottom: 12,
+        textTransform: 'none',
+    },
+    highlightHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 8,
+    },
+    highlightDot: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+    },
+    highlightName: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: 'black',
+    },
+    highlightStats: {
+        fontSize: 14,
+        color: colors.muted,
+    },
+    highlightPercent: {
+        fontWeight: 'bold',
+        color: colors.primary,
+    },
+    languageRow: {
+        marginBottom: 20,
+    },
+    languageRowHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    languageRowLabel: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    languageRowDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+    },
+    languageRowName: {
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: colors.primary,
+    },
+    languageRowPercent: {
+        fontSize: 12,
+        color: colors.muted,
+    },
+    individualBarContainer: {
+        height: 8,
+        backgroundColor: '#f3f4f6',
+        borderRadius: 4,
+        overflow: 'hidden',
+    },
+    individualBarFill: {
+        height: '100%',
+        borderRadius: 4,
+    },
+    languagesSummaryFooter: {
+        marginTop: 30,
+        textAlign: 'center',
+        fontSize: 12,
+        color: colors.muted,
+    },
+    languagesSummaryBold: {
+        fontWeight: 'bold',
+        color: colors.primary,
     },
     // Notes
     noteCard: {
@@ -337,6 +426,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 60,
     },
+
+
 });
 
 // Helper function to get heatmap color
@@ -630,6 +721,13 @@ function ReposPage({ data }: PDFDocumentProps) {
         .sort((a, b) => b.stars - a.stars)
         .slice(0, 6);
 
+    // Helper to get color for a specific language
+    const getLangColor = (langName: string | null) => {
+        if (!langName) return colors.muted;
+        const lang = data.topLanguages.find(l => l.name === langName);
+        return lang ? lang.color : colors.muted;
+    };
+
     return (
         <Page size="A4" style={styles.page}>
             <Text style={styles.pageTitle}>New Repositories</Text>
@@ -654,7 +752,20 @@ function ReposPage({ data }: PDFDocumentProps) {
                                 <Text style={styles.repoStatText}>{repo.forks}</Text>
                             </View>
                         )}
-                        {repo.language && <Text style={styles.repoStatText}>{repo.language}</Text>}
+                        {repo.language && (
+                            <View style={styles.repoStat}>
+                                <View
+                                    style={{
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: 4,
+                                        backgroundColor: getLangColor(repo.language),
+                                        marginRight: 2
+                                    }}
+                                />
+                                <Text style={styles.repoStatText}>{repo.language}</Text>
+                            </View>
+                        )}
                     </View>
                 </View>
             ))}
@@ -669,65 +780,141 @@ function ReposPage({ data }: PDFDocumentProps) {
 }
 
 function SocialPage({ data }: PDFDocumentProps) {
+    // Find the most starred repo from newRepos
+    const mostStarredRepo = data.newRepos.length > 0
+        ? [...data.newRepos].sort((a, b) => b.stars - a.stars)[0]
+        : null;
+
     return (
         <Page size="A4" style={styles.page}>
             <Text style={styles.pageTitle}>Social & Community</Text>
             <Text style={styles.pageSubtitle}>Your GitHub presence in {data.year}</Text>
 
             <View style={styles.statsGrid}>
-                <View style={[styles.statCard, { width: '30%' }]}>
+                <View style={[styles.statCard, { width: '45%', backgroundColor: colors.background.pink }]}>
+                    <Text style={styles.noteEmoji}>👤</Text>
                     <Text style={styles.statLabel}>Followers</Text>
                     <Text style={[styles.statValue, { color: colors.accent.pink }]}>
                         {data.followers}
                     </Text>
                 </View>
-                <View style={[styles.statCard, { width: '30%' }]}>
+                <View style={[styles.statCard, { width: '45%', backgroundColor: colors.background.blue }]}>
+                    <Text style={styles.noteEmoji}>🤝</Text>
                     <Text style={styles.statLabel}>Following</Text>
-                    <Text style={styles.statValue}>{data.following}</Text>
+                    <Text style={[styles.statValue, { color: colors.accent.blue }]}>
+                        {data.following}
+                    </Text>
                 </View>
-                <View style={[styles.statCard, { width: '30%' }]}>
+                <View style={[styles.statCard, { width: '45%', backgroundColor: colors.background.orange }]}>
+                    <Text style={styles.noteEmoji}>⭐</Text>
                     <Text style={styles.statLabel}>Total Stars</Text>
                     <Text style={[styles.statValue, { color: colors.accent.orange }]}>
                         {data.totalStars}
                     </Text>
                 </View>
+                {mostStarredRepo ? (
+                    <View style={[styles.statCard, { width: '45%', backgroundColor: colors.background.purple }]}>
+                        <Text style={styles.noteEmoji}>🚀</Text>
+                        <Text style={styles.statLabel}>Most Popular Repo</Text>
+                        <Text style={[styles.statValue, { color: colors.accent.purple, fontSize: 14 }]}>
+                            {mostStarredRepo.name}
+                        </Text>
+                        <Text style={styles.statDescription}>{mostStarredRepo.stars} stars earned</Text>
+                    </View>
+                ) : (
+                    <View style={[styles.statCard, { width: '45%', backgroundColor: colors.background.purple }]}>
+                        <Text style={styles.noteEmoji}>🌱</Text>
+                        <Text style={styles.statLabel}>Repositories</Text>
+                        <Text style={[styles.statValue, { color: colors.accent.purple }]}>
+                            {data.totalReposCreated}
+                        </Text>
+                        <Text style={styles.statDescription}>New repos created</Text>
+                    </View>
+                )}
             </View>
         </Page>
     );
 }
 
 function LanguagesPage({ data }: PDFDocumentProps) {
-    const languages = data.topLanguages.slice(0, 6);
+    const sortedLanguages = [...data.topLanguages].sort((a, b) => b.percentage - a.percentage);
+    const mainLanguages = sortedLanguages.slice(0, 4);
+    const topLanguage = mainLanguages[0];
+
+    // Calculate max percentage among displayed languages for relative scaling
+    const maxPercentage = mainLanguages.length > 0
+        ? Math.max(...mainLanguages.map(l => l.percentage))
+        : 100;
+
+    // Calculate top 3 total for the footer
+    const top3Percent = sortedLanguages
+        .slice(0, 3)
+        .reduce((acc, lang) => acc + lang.percentage, 0);
 
     return (
         <Page size="A4" style={styles.page}>
             <Text style={styles.pageTitle}>Top Languages</Text>
-            <Text style={styles.pageSubtitle}>Most used programming languages in {data.year}</Text>
+            <Text style={styles.pageSubtitle}>Your most used programming languages in {data.year}</Text>
 
-            {languages.length > 0 && (
-                <>
-                    <View style={styles.languageBar}>
-                        {languages.map((lang: LanguageStats, index: number) => (
-                            <View
-                                key={index}
-                                style={{
-                                    backgroundColor: lang.color,
-                                    width: `${lang.percentage}%`,
-
-                                }}
-                            />
-                        ))}
-                    </View>
-
-                    {languages.map((lang: LanguageStats, index: number) => (
-                        <View key={index} style={styles.languageItem}>
-                            <View style={[styles.languageDot, { backgroundColor: lang.color }]} />
-                            <Text style={styles.languageName}>{lang.name}</Text>
-                            <Text style={styles.languagePercent}>{lang.percentage.toFixed(1)}%</Text>
-                        </View>
+            {/* Current language bar kept as requested */}
+            {data.topLanguages.length > 0 && (
+                <View style={[styles.languageBar, { marginBottom: 30 }]}>
+                    {data.topLanguages.slice(0, 8).map((lang: LanguageStats, index: number) => (
+                        <View
+                            key={index}
+                            style={{
+                                backgroundColor: lang.color,
+                                width: `${lang.percentage}%`,
+                            }}
+                        />
                     ))}
-                </>
+                </View>
             )}
+
+            {topLanguage && (
+                <View style={styles.highlightCard}>
+                    <Text style={styles.highlightLabel}>Your #1 language</Text>
+                    <View style={styles.highlightHeader}>
+                        <View style={[styles.highlightDot, { backgroundColor: topLanguage.color }]} />
+                        <Text style={styles.highlightName}>{topLanguage.name}</Text>
+                    </View>
+                    <Text style={styles.highlightStats}>
+                        <Text style={styles.highlightPercent}>{topLanguage.percentage.toFixed(1)}%</Text> of your code
+                    </Text>
+                </View>
+            )}
+
+            <View style={{ marginTop: 10 }}>
+                {mainLanguages.map((lang: LanguageStats, index: number) => {
+                    const relativeWidth = (lang.percentage / maxPercentage) * 100;
+                    return (
+                        <View key={index} style={styles.languageRow}>
+                            <View style={styles.languageRowHeader}>
+                                <View style={styles.languageRowLabel}>
+                                    <View style={[styles.languageRowDot, { backgroundColor: lang.color }]} />
+                                    <Text style={styles.languageRowName}>{lang.name}</Text>
+                                </View>
+                                <Text style={styles.languageRowPercent}>{lang.percentage.toFixed(1)}%</Text>
+                            </View>
+                            <View style={styles.individualBarContainer}>
+                                <View
+                                    style={[
+                                        styles.individualBarFill,
+                                        {
+                                            backgroundColor: lang.color,
+                                            width: `${relativeWidth}%`,
+                                        },
+                                    ]}
+                                />
+                            </View>
+                        </View>
+                    );
+                })}
+            </View>
+
+            <Text style={styles.languagesSummaryFooter}>
+                Your top 3 languages account for <Text style={styles.languagesSummaryBold}>{top3Percent.toFixed(1)}%</Text> of your code
+            </Text>
         </Page>
     );
 }
@@ -746,7 +933,7 @@ function getNoteColors(category: string) {
         case 'repos':
             return { bg: colors.background.purple, border: colors.accent.purple };
         default:
-            return { bg: '#f9fafb', border: colors.border };
+            return { bg: '#f9fafb', border: colors.accent.darkGrey };
     }
 }
 
