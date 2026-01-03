@@ -55,7 +55,7 @@ export function PeerlistBadge() {
         >
           <div className="relative group">
             <a
-              href="https://peerlist.io/shihanrishad/project/github-yearly-recap"
+              href="https://peerlist.io/shihan/project/github-yearly-recap"
               target="_blank"
               rel="noopener noreferrer"
               className="block transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]"
