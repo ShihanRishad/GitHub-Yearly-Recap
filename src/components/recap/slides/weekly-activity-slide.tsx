@@ -29,7 +29,7 @@ export function WeeklyActivitySlide({ data }: WeeklyActivitySlideProps) {
 
   return (
     <div className="w-full flex flex-col items-center justify-center md:justify-start p-4 md:p-6 bg-background relative">
-      <div className="max-w-4xl w-full h-screen flex flex-col items-center justify-center pt-16 md:pt-16 gap-6 md:gap-22">
+      <div className="max-w-4xl w-full h-screen flex flex-col items-center justify-center pt-16 md:pt-32 gap-6 md:gap-10">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
