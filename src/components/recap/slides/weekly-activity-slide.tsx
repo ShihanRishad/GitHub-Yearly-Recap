@@ -36,7 +36,7 @@ export function WeeklyActivitySlide({ data }: WeeklyActivitySlideProps) {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-0"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-0">Weekly Activity</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-0">Weekly Contributions</h2>
         </motion.div>
 
         <motion.div
