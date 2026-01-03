@@ -88,7 +88,7 @@ export function ContributionHeatmap({ calendar, className = '' }: ContributionHe
 
     return (
         <div className={`flex flex-col items-center w-full ${className}`}>
-            <div className="w-full overflow-x-auto py-2 scrollbar-minimal flex justify-center">
+            <div className="w-full overflow-x-auto py-2 flex justify-center">
                 <svg
                     width={width}
                     height={height}
