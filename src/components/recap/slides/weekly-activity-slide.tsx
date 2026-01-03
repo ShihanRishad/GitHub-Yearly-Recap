@@ -28,22 +28,22 @@ export function WeeklyActivitySlide({ data }: WeeklyActivitySlideProps) {
   const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="w-full flex flex-col items-center justify-start p-4 md:p-6 bg-background relative">
-      <div className="max-w-4xl w-full flex flex-col items-center pt-16 md:pt-16 gap-6 md:gap-10">
+    <div className="w-full flex flex-col items-center justify-center md:justify-start p-4 md:p-6 bg-background relative">
+      <div className="max-w-4xl w-full h-screen flex flex-col items-center justify-center pt-16 md:pt-16 gap-6 md:gap-22">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-0"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-0">Weekly Contributions</h2>
+          <h2 className="text-3xl md:text-4xl font-bold md:mb-0 mb-8">Weekly Contributions</h2>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full aspect-[4/5] md:aspect-[16/9] max-h-[60dvh] md:max-h-[500px] bg-card/80 mb-15 rounded-[2rem] border border-border/40 p-6 md:p-12 flex flex-col items-center shadow-lg relative"
+          className="md:w-full w-[90%] aspect-[4/5] md:aspect-[16/9] max-h-[60dvh] md:max-h-[500px] bg-card/80 mb-15 rounded-[2rem] border border-border/40 p-6 md:p-12 flex flex-col items-center shadow-lg relative"
         >
           <div className="flex-1 w-full flex items-end justify-between gap-2 md:gap-8 px-0 md:px-4 pb-1">
             {weekdayStats.map((count, i) => {
