@@ -6,6 +6,7 @@ interface SlideshowContainerProps {
     currentSlide: number;
     onSlideChange: (index: number) => void;
     className?: string;
+    isKeyboardNavEnabled?: boolean;
 }
 
 const slideVariants = {
@@ -38,6 +39,7 @@ export function SlideshowContainer({
     currentSlide,
     onSlideChange,
     className = '',
+    isKeyboardNavEnabled = true,
 }: SlideshowContainerProps) {
     const [[page, direction], setPage] = useState([currentSlide, 0]);
     const totalSlides = children.length;
@@ -63,6 +65,8 @@ export function SlideshowContainer({
     // Keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (!isKeyboardNavEnabled) return;
+
             if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'Enter') {
                 e.preventDefault();
                 paginate(1);

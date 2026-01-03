@@ -15,6 +15,7 @@ import { ReposSlide } from '@/components/recap/slides/repos-slide';
 import { SocialSlide } from '@/components/recap/slides/social-slide';
 import { LanguagesSlide } from '@/components/recap/slides/languages-slide';
 import { NotesSlide } from '@/components/recap/slides/notes-slide';
+import { WeeklyActivitySlide } from '@/components/recap/slides/weekly-activity-slide';
 import { ShareSlide } from '@/components/recap/slides/share-slide';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { RefreshIcon, PauseIcon, PlayIcon } from '@hugeicons/core-free-icons';
@@ -47,12 +48,13 @@ const SLIDE_DURATIONS: Record<number, number> = {
   1: 6000, // Overview
   2: 6000, // Heatmap
   3: 35000, // Streaks + Heatmap
-  4: 8000, // PRs/Issues
-  5: 6000, // Repos
-  6: 4000, // Social
-  7: 5000, // Languages
-  8: 8000, // Notes
-  9: 10000, // Share
+  4: 8000, // Weekly Breakdown
+  5: 8000, // PRs/Issues
+  6: 6000, // Repos
+  7: 4000, // Social
+  8: 5000, // Languages
+  9: 8000, // Notes
+  10: 10000, // Share
 };
 
 export function RecapPage() {
@@ -279,7 +281,7 @@ export function RecapPage() {
 
   // Handle pause shortcuts
   useEffect(() => {
-    if (status !== 'ready' || currentSlide === 9) return;
+    if (status !== 'ready' || currentSlide === 10) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Toggle Pause with Space or P
@@ -294,7 +296,7 @@ export function RecapPage() {
   }, [status, currentSlide]);
 
   useEffect(() => {
-    if (status !== 'ready' || currentSlide === 9) return;
+    if (status !== 'ready' || currentSlide === 10) return;
 
     if (isPaused) {
       // record how much time has passed
@@ -315,7 +317,7 @@ export function RecapPage() {
 
   // Automatecally change slides
   useEffect(() => {
-    if (status !== 'ready' || !data || isPaused || currentSlide === 9) return;
+    if (status !== 'ready' || !data || isPaused || currentSlide === 10) return;
 
     const totalDuration = SLIDE_DURATIONS[currentSlide] || 6000;
     // PLAN: apply the "remembered time" logic for all slides; Don't know if it's right
@@ -328,7 +330,7 @@ export function RecapPage() {
     slideStartTimeRef.current = Date.now();
 
     slideTimerRef.current = setTimeout(() => {
-      if (currentSlide < 9) {
+      if (currentSlide < 10) {
         setCurrentSlide(prev => prev + 1);
       }
     }, remainingTime);
@@ -350,7 +352,7 @@ export function RecapPage() {
   const handleNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setIsPaused(false);
-    if (data && currentSlide < 9) {
+    if (data && currentSlide < 10) {
       setCurrentSlide(currentSlide + 1);
     }
   };
@@ -366,7 +368,7 @@ export function RecapPage() {
   };
 
   const togglePause = () => {
-    if (status === 'ready' && currentSlide !== 9) {
+    if (status === 'ready' && currentSlide !== 10) {
       setIsPaused(prev => !prev);
     }
   };
@@ -380,6 +382,7 @@ export function RecapPage() {
       <OverviewSlide key="overview" data={data} />,
       <HeatmapSlide key="heatmap" data={data} />,
       <StreaksSlide key="streaks" data={data} isPaused={isPaused} />,
+      <WeeklyActivitySlide key="weekly" data={data} />,
       <PRsIssuesSlide key="prs-issues" data={data} />,
       <ReposSlide key="repos" data={data} />,
       <SocialSlide key="social" data={data} />,
@@ -435,6 +438,7 @@ export function RecapPage() {
                 currentSlide={currentSlide}
                 onSlideChange={setCurrentSlide}
                 className="min-h-full"
+                isKeyboardNavEnabled={status === 'ready'}
               >
                 {renderSlides()}
               </SlideshowContainer>
@@ -442,12 +446,12 @@ export function RecapPage() {
 
             <SlideNavigation
               currentSlide={currentSlide}
-              totalSlides={10}
+              totalSlides={11}
               onPrevious={handlePrevious}
               onNext={handleNext}
               onGoToSlide={handleGoToSlide}
               duration={SLIDE_DURATIONS[currentSlide] || 6000}
-              isPlaying={status === 'ready' && !isPaused && currentSlide !== 9}
+              isPlaying={status === 'ready' && !isPaused && currentSlide !== 10}
               elapsedTime={currentSlide === 3 ? slideElapsedTime : 0}
             />
 
