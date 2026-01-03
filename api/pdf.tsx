@@ -428,6 +428,54 @@ const styles = StyleSheet.create({
     },
 
 
+    // Weekly Activity
+    weeklyCard: {
+        backgroundColor: '#f9fafbb2',
+        borderRadius: 24,
+        padding: 30,
+        marginVertical: 20,
+        borderWidth: 1,
+        borderColor: '#eeeeee',
+        height: 350,
+        flexDirection: 'column',
+    },
+    weeklyChartContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        paddingBottom: 10,
+    },
+    weeklyBarColumn: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        flex: 1,
+    },
+    weeklyBarCount: {
+        fontSize: 10,
+        color: colors.muted,
+        marginBottom: 6,
+    },
+    weeklyBarTrack: {
+        width: '70%',
+        backgroundColor: '#f3f4f6',
+        borderRadius: 6,
+        height: 200,
+        justifyContent: 'flex-end',
+        overflow: 'hidden',
+    },
+    weeklyBarFill: {
+        width: '100%',
+        backgroundColor: colors.accent.darkGrey,
+        borderRadius: 6,
+    },
+    weeklyBarLabel: {
+        fontSize: 9,
+        color: colors.muted,
+        marginTop: 8,
+        textTransform: 'uppercase',
+    },
 });
 
 // Helper function to get heatmap color
@@ -618,6 +666,56 @@ function HeatmapPage({ data }: PDFDocumentProps) {
                     </Text>
                     <Text style={styles.statDescription}>contributions/day</Text>
                 </View>
+            </View>
+        </Page>
+    );
+}
+
+function WeeklyPage({ data }: PDFDocumentProps) {
+    const weekdayStats = React.useMemo(() => {
+        const stats = [0, 0, 0, 0, 0, 0, 0];
+        data.contributionCalendar.weeks.forEach((week) => {
+            week.contributionDays.forEach((day) => {
+                if (typeof day.weekday === 'number' && day.weekday >= 0 && day.weekday <= 6) {
+                    stats[day.weekday] += day.contributionCount;
+                }
+            });
+        });
+        return stats;
+    }, [data.contributionCalendar]);
+
+    const maxCount = Math.max(...weekdayStats, 1);
+    const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    return (
+        <Page size="A4" style={styles.page}>
+            <Text style={styles.pageTitle}>Weekly Contributions</Text>
+            <Text style={styles.pageSubtitle}>How your activity peaks throughout the week</Text>
+
+            <View style={styles.weeklyCard}>
+                <View style={styles.weeklyChartContainer}>
+                    {weekdayStats.map((count, i) => {
+                        const heightPercentage = Math.max(5, (count / maxCount) * 100);
+                        return (
+                            <View key={i} style={styles.weeklyBarColumn}>
+                                <Text style={styles.weeklyBarCount}>{count}</Text>
+                                <View style={styles.weeklyBarTrack}>
+                                    <View
+                                        style={[
+                                            styles.weeklyBarFill,
+                                            { height: `${heightPercentage}%` }
+                                        ]}
+                                    />
+                                </View>
+                                <Text style={styles.weeklyBarLabel}>{shortDays[i]}</Text>
+                            </View>
+                        );
+                    })}
+                </View>
+            </View>
+
+            <View style={styles.footer}>
+                <Text style={styles.footerText}>github-yearly-recap.vercel.app</Text>
             </View>
         </Page>
     );
@@ -1063,6 +1161,7 @@ function RecapPDFDocument({ data }: PDFDocumentProps) {
             <TitlePage data={data} />
             <OverviewPage data={data} />
             <HeatmapPage data={data} />
+            <WeeklyPage data={data} />
             <StreaksPage data={data} />
             <PRsIssuesPage data={data} />
             <ReposPage data={data} />
