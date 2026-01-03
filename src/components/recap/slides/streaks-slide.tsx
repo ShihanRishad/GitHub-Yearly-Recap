@@ -491,7 +491,7 @@ export function StreaksSlide({ data, isPaused }: StreaksSlideProps) {
         </div>
       )}
 
-      {/* 2. Main Stage - Hidden during expandedCards and clock */}
+      {/* 2. Main Stage - Hidden during expandedCards, clock, and dailyGraph */}
       <div className="flex-1 relative flex items-center justify-center">
         {phase !== 'clock' && phase !== 'expandedCards' && (
           <motion.div
