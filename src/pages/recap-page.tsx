@@ -435,6 +435,7 @@ export function RecapPage() {
                 currentSlide={currentSlide}
                 onSlideChange={setCurrentSlide}
                 className="min-h-full"
+                isKeyboardNavEnabled={status === 'ready'}
               >
                 {renderSlides()}
               </SlideshowContainer>
