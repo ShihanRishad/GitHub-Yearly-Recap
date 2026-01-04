@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { UserAdd01Icon, UserCheck01Icon } from '@hugeicons/core-free-icons';
+import { UserAdd01Icon, UserCheck01Icon, StarIcon } from '@hugeicons/core-free-icons';
 import type { RecapData } from '@/types';
 
 interface SocialSlideProps {
@@ -31,15 +31,15 @@ export function SocialSlide({ data }: SocialSlideProps) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                 >
-                    <Card className="border-border/50 bg-gradient-to-br from-pink-500/5 to-transparent overflow-hidden">
+                    <Card className="border-border/50 bg-gradient-to-br from-blue-500/5 to-transparent overflow-hidden">
                         <CardContent className="p-6 text-center">
                             <motion.div
-                                className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-pink-500/20 to-red-500/20 flex items-center justify-center mb-4"
+                                className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mb-4"
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ delay: 0.3, type: 'spring' }}
                             >
-                                <HugeiconsIcon icon={UserAdd01Icon} strokeWidth={2} size={28} className="text-pink-500" />
+                                <HugeiconsIcon icon={UserAdd01Icon} strokeWidth={2} size={28} className="text-blue-500" />
                             </motion.div>
                             <motion.p
                                 className="text-4xl font-bold mb-1"
@@ -60,15 +60,15 @@ export function SocialSlide({ data }: SocialSlideProps) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <Card className="border-border/50 bg-gradient-to-br from-blue-500/5 to-transparent overflow-hidden">
+                    <Card className="border-border/50 bg-gradient-to-br from-green-500/5 to-transparent overflow-hidden">
                         <CardContent className="p-6 text-center">
                             <motion.div
-                                className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mb-4"
+                                className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-green-500/20 to-yellow-500/20 flex items-center justify-center mb-4"
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ delay: 0.4, type: 'spring' }}
                             >
-                                <HugeiconsIcon icon={UserCheck01Icon} strokeWidth={2} size={28} className="text-blue-500" />
+                                <HugeiconsIcon icon={UserCheck01Icon} strokeWidth={2} size={28} className="text-green-500" />
                             </motion.div>
                             <motion.p
                                 className="text-4xl font-bold mb-1"
@@ -97,7 +97,7 @@ export function SocialSlide({ data }: SocialSlideProps) {
                                 animate={{ scale: 1 }}
                                 transition={{ delay: 0.5, type: 'spring' }}
                             >
-                                <span className="text-3xl">⭐</span>
+                                <HugeiconsIcon icon={StarIcon} strokeWidth={2} size={28} className="text-yellow-500" />
                             </motion.div>
                             <motion.p
                                 className="text-4xl font-bold mb-1"
@@ -120,11 +120,11 @@ export function SocialSlide({ data }: SocialSlideProps) {
                 transition={{ delay: 0.7 }}
                 className="text-center mt-10"
             >
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-blue-500/10 px-6 py-3 rounded-full">
-                    <span className="text-lg">❤️</span>
-                    <p className="text-muted-foreground">
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border/50 bg-background/900 backdrop-blur-sm shadow-sm">
+                    <p className="text-sm md:text-base font-medium text-muted-foreground">
                         Thank you for being part of the open source community!
                     </p>
+                    <span className="text-xl" role="img" aria-label="heart">❤️</span>
                 </div>
             </motion.div>
         </div>
