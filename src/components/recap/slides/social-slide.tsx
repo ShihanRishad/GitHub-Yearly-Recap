@@ -120,7 +120,7 @@ export function SocialSlide({ data }: SocialSlideProps) {
                 transition={{ delay: 0.7 }}
                 className="text-center mt-10"
             >
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border/50 bg-background/900 backdrop-blur-sm shadow-sm">
+                <div className="inline-flex items-center italic gap-2 px-6 py-3 rounded-full border border-border/50 bg-ring/10 backdrop-blur-sm shadow-sm">
                     <p className="text-sm md:text-base font-medium text-muted-foreground">
                         Thank you for being part of the open source community!
                     </p>

@@ -229,7 +229,7 @@ export function ShareSlide({ data, onRegenerate, isDemo = false }: ShareSlidePro
                     transition={{ delay: 0.7 }}
                     className="text-center text-muted-foreground mt-8"
                 >
-                    Thank you for an amazing {data.year}! 🎉
+                    Congratulations for an amazing {data.year}! 🎉
                 </motion.p>
             </div>
         </div>
